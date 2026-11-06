@@ -706,6 +706,13 @@
   window.addEventListener("hashchange", function () { var lg = location.hash.slice(1); if (LEAGUES[lg] && lg !== state.league) setLeague(lg); });
   var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { var m = state.matches.find(function (x) { return x.id === state.sel; }); if (m) renderFlow(m, probs(m)); }, 150); });
 
+  // all kick-off times use the viewer's own time zone; say which one
+  (function () {
+    var zone = "", abbr = "";
+    try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    try { abbr = (new Intl.DateTimeFormat(undefined, { timeZoneName: "short" }).formatToParts(new Date()).find(function (x) { return x.type === "timeZoneName"; }) || {}).value || ""; } catch (e) {}
+    $("tzNote").textContent = "Times in your time zone" + (zone || abbr ? ": " + [zone.replace(/_/g, " "), abbr].filter(Boolean).join(", ") : "");
+  })();
   setLeague(LEAGUES[location.hash.slice(1)] ? location.hash.slice(1) : (store("wmh-league") || "wsl"));
   Photos.loadShared().then(function () { renderFixtures(); renderMatch(); });
 })();

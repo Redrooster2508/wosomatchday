@@ -30,4 +30,8 @@ The automatic picks were often wrong: the opponent in a match photo, a men's sid
 First pass (2026-11-06): 26 of 47 kept, 21 rejected and marked `null` in the manifest.
 
 ## Player portraits
+The same **2023 or later** rule applies: the main Wikidata image (`P18`) if it's recent, otherwise the newest licensed photo in the player's Commons category (`P373`) whose title names her, preferring portrait shape. If there isn't one, the page shows initials. The credit shows the year.
+
+Official club and federation squad headshots are copyrighted, so they're not used. Free crops from Commons team photos are, and the category search finds them.
+
 `player-page.js` searches Wikidata for the player's name and keeps the first result that is an association football player (`P106 = Q937857`), female (`P21 = Q6581072`) and has an image (`P18`). It then reads the Commons licence and credit and only shows the image if the licence is free. Otherwise the page shows initials in club colours. ESPN has no women's headshots.

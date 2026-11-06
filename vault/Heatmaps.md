@@ -35,6 +35,7 @@ Built from ESPN's play-by-play ([[Data sources (ESPN)]]): about 1,500 events per
 The site says so on Liga F match centres and player pages.
 
 ## Gotchas
+- **Firefox blank heatmap.** The heat layer was first drawn as canvas pixels. In a user's Firefox it stayed blank while the shot map showed, most likely because fingerprinting protection blanks canvas pixel data. Now drawn as SVG cells with a Gaussian blur, tested in Chrome, Firefox, and Firefox with protection on.
 - **"Goal Kick" starts with "Goal".** The first version counted every goal kick as a goal: Aston Villa showed 21 shots on target instead of 1. Now only `Goal` or `Goal - …` count.
 - **ID clash:** the first panel used `id="heat"`, already used by the score-probability grid, so both drew into the same box. Renamed to `pitchHeat`.
 - **Play-by-play vs match sheet:** counts can differ slightly. Russo's Champions League goals are 4 on the match sheet but 3 goal events in the play-by-play. See [[Known issues and next steps]].

@@ -48,6 +48,7 @@ button,select,input{font:inherit;color:inherit}
 .btn{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:5px 10px;font-size:13px;cursor:pointer}
 .btn:hover{border-color:var(--muted)}
 .btn.icon{font-size:18px;line-height:1;padding:4px 10px}
+.tz{font-family:var(--f-data);font-size:11px;color:var(--muted);margin-left:4px}
 .status{font-family:var(--f-data);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .status.err{color:var(--loss)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block}
@@ -363,7 +364,7 @@ td img{max-width:none}
 .hm-title{font-weight:700}
 .hm-bar .pl-select{max-width:100%}
 .hm-pitch{position:relative;width:100%;max-width:100%;aspect-ratio:105/68;background:var(--pitch);border-radius:4px;overflow:hidden;color:var(--pitch-line)}
-.hm-canvas,.hm-lines{position:absolute;inset:0;width:100%;height:100%}
+.hm-lines{position:absolute;inset:0;width:100%;height:100%}
 .hm-lines{overflow:visible}
 .hm-dir{font-family:var(--f-data);font-size:11px;color:var(--muted);text-align:right;margin-top:-4px}
 .hm-cap{margin:0}

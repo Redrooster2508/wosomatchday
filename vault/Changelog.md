@@ -9,6 +9,13 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 - `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
 - Recent (2023+) team photo shortlist from Commons and Openverse, under review
 
+## 2026-11-06 · Firefox heatmap fix, recent portraits, measurements, time zones
+- Heatmaps are now drawn as blurred SVG instead of canvas pixels. Firefox's fingerprinting protection can blank canvas pixel data; SVG renders in every browser and follows the theme.
+- NWSL season heatmaps built
+- Player portraits must be from 2023 or later: the main Wikidata image if it's recent, otherwise the newest suitable photo in the player's Commons category, otherwise initials. The credit shows the year.
+- Height and weight in metric and imperial
+- The hub names the viewer's time zone; every kick-off time was already in local time
+
 ## 2026-11-06 · WSL heatmaps; Liga F coverage note
 - Season heatmaps and shot maps built for the WSL (281 players, 56 matches)
 - Liga F: ESPN's play-by-play has no pitch positions, so the site says there's no heatmap instead of showing an empty one

@@ -159,6 +159,18 @@
     t.appendChild(tb); box.appendChild(t);
   }
 
+  // ESPN gives imperial measurements ("5' 11\"", "172 lbs"); show metric first, imperial after.
+  function height(txt) {
+    var m = String(txt || "").match(/(\d+)\s*'\s*(\d+)?/);
+    if (!m) return "";
+    var inches = +m[1] * 12 + (+m[2] || 0);
+    return (inches * 2.54 / 100).toFixed(2) + " m (" + m[1] + " ft " + (+m[2] || 0) + " in)";
+  }
+  function weight(txt) {
+    var m = String(txt || "").match(/(\d+(?:\.\d+)?)\s*lb/i);
+    return m ? Math.round(+m[1] * 0.45359237) + " kg (" + Math.round(+m[1]) + " lb)" : "";
+  }
+
   // ESPN profile (age, height, nationality), then a freely licensed portrait from Wikidata / Commons.
   function profile(p, team) {
     var photo = $("pPhoto");
@@ -171,40 +183,60 @@
         if (a.flag && /^https:\/\//.test(a.flag.href)) { var f = new Image(); f.src = a.flag.href; f.alt = ""; f.className = "pp-flag"; nat.appendChild(f); }
         nat.appendChild(document.createTextNode(a.citizenship));
       }
-      facts([["Position", a.position && a.position.displayName], ["Nationality", nat], ["Age", a.age ? a.age + (a.displayDOB ? " (born " + a.displayDOB + ")" : "") : ""], ["Height", a.displayHeight]]);
+      facts([["Position", a.position && a.position.displayName], ["Nationality", nat], ["Age", a.age ? a.age + (a.displayDOB ? " (born " + a.displayDOB + ")" : "") : ""],
+        ["Height", height(a.displayHeight)], ["Weight", weight(a.displayWeight)]]);
     }).catch(function () {});
     portrait(p.name).then(function (img) {
       if (!img) return;
       var im = new Image(); im.src = img.url; im.alt = "Portrait of " + p.name; im.className = "pp-img";
       im.onload = function () { photo.classList.add("has-img"); };
       photo.insertBefore(im, photo.firstChild);
-      var cap = $("pCredit"); cap.textContent = "Photo: ";
+      var cap = $("pCredit"); cap.textContent = "Photo (" + img.year + "): ";
       var a = el("a", null, img.credit); a.href = img.source; a.target = "_blank"; a.rel = "noopener"; cap.appendChild(a);
     }).catch(function () {});
   }
 
-  var OK_LICENCE = /^(cc[ -]by(-sa)?([ -][\d.]+)?|cc0|public domain|pd)/i;
+  var OK_LICENCE = /^(cc[ -]by(-sa)?([ -][\d.]+)?|cc0|public domain|pd)/i, SINCE = 2023;
+  function fold(t) { return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function yearOf(meta, title) {
+    var ys = (plain(meta.DateTimeOriginal && meta.DateTimeOriginal.value).match(/(?:19|20)\d\d/g) || String(title).match(/(?:19|20)\d\d/g) || []).map(Number);
+    return ys.length ? Math.max.apply(null, ys) : null;
+  }
+  // A freely licensed portrait taken in 2023 or later: the player's main Wikidata image if it is recent,
+  // otherwise the newest suitable photo in her Commons category. Older photos are not shown.
   function portrait(name) {
     var W = "https://www.wikidata.org/w/api.php?origin=*&format=json&";
+    var C = "https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=600&";
+    var surname = fold(name.split(/\s+/).slice(-1)[0]);
+    function usable(pg) {
+      var ii = pg && pg.imageinfo && pg.imageinfo[0]; if (!ii) return null;
+      var meta = ii.extmetadata || {}, lic = plain(meta.LicenseShortName && meta.LicenseShortName.value), year = yearOf(meta, pg.title);
+      if (!OK_LICENCE.test(lic) || !year || year < SINCE || !/\.(jpe?g|png|webp)$/i.test(pg.title)) return null;
+      var who = plain(meta.Artist && meta.Artist.value).slice(0, 80) || "Unknown author";
+      return { url: ii.thumburl || ii.url, year: year, tall: ii.height >= ii.width, title: pg.title, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
+    }
     return getJSON(W + "action=wbsearchentities&language=en&limit=7&type=item&search=" + encodeURIComponent(name)).then(function (s) {
       var ids = (s.search || []).map(function (x) { return x.id; });
       if (!ids.length) return null;
       return getJSON(W + "action=wbgetentities&props=claims&ids=" + ids.join("|")).then(function (e) {
-        // an association football player (Q937857), female (Q6581072), with an image (P18)
+        // an association football player (Q937857), female (Q6581072)
         var hit = ids.map(function (i) { return e.entities[i]; }).find(function (en) {
           var c = en && en.claims || {};
           function has(prop, q) { return (c[prop] || []).some(function (x) { var v = x.mainsnak && x.mainsnak.datavalue; return v && v.value && v.value.id === q; }); }
-          return has("P106", "Q937857") && has("P21", "Q6581072") && c.P18;
+          return has("P106", "Q937857") && has("P21", "Q6581072");
         });
         if (!hit) return null;
-        var file = hit.claims.P18[0].mainsnak.datavalue.value;
-        return getJSON("https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&titles=" + encodeURIComponent("File:" + file)).then(function (c) {
-          var pg = c.query && c.query.pages && c.query.pages[Object.keys(c.query.pages)[0]], ii = pg && pg.imageinfo && pg.imageinfo[0];
-          if (!ii) return null;
-          var meta = ii.extmetadata || {}, lic = plain(meta.LicenseShortName && meta.LicenseShortName.value);
-          if (!OK_LICENCE.test(lic)) return null;
-          var who = plain(meta.Artist && meta.Artist.value).slice(0, 80) || "Unknown author";
-          return { url: ii.thumburl || ii.url, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
+        function val(prop) { var c = hit.claims[prop]; return c && c[0] && c[0].mainsnak.datavalue ? c[0].mainsnak.datavalue.value : null; }
+        var main = val("P18"), cat = val("P373");
+        var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }) : Promise.resolve(null);
+        return first.then(function (img) {
+          if (img || !cat) return img;
+          return getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
+            var list = Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
+              .filter(function (x) { return x && fold(x.title).indexOf(surname) >= 0; });
+            list.sort(function (a, b) { return (b.year - a.year) || (b.tall - a.tall); });
+            return list[0] || null;
+          });
         });
       });
     });

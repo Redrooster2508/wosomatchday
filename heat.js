@@ -43,16 +43,12 @@
     });
   }
 
-  function cssVar(name, fallback) { var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); return v || fallback; }
-  function rgb(color) { var c = document.createElement("canvas").getContext("2d"); c.fillStyle = color; var h = c.fillStyle; if (h[0] === "#") return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; var m = h.match(/\d+/g) || [0, 0, 0]; return m.slice(0, 3).map(Number); }
 
-  // Pitch drawing: returns {wrap, canvas, svg, X, Y} where X/Y map metres to pixels.
+  // Pitch drawing: returns {wrap, svg}; the SVG viewBox is the pitch in metres (105 x 68).
   var NS = "http://www.w3.org/2000/svg";
   function sv(tag, a, parent) { var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; }
   function pitch(box, label) {
     var wrap = el("div", "hm-pitch"); box.appendChild(wrap);
-    var W = Math.max(260, Math.round(wrap.clientWidth || box.clientWidth || 480)), H = Math.round(W * Wd / L);
-    var cv = document.createElement("canvas"); cv.width = W * 2; cv.height = H * 2; cv.className = "hm-canvas"; wrap.appendChild(cv);
     var svg = sv("svg", { viewBox: "0 0 " + L + " " + Wd, class: "hm-lines", role: "img", "aria-label": label || "Pitch" }, wrap);
     var g = sv("g", { fill: "none", stroke: "currentColor", "stroke-width": 0.35 }, svg);
     sv("rect", { x: 0.2, y: 0.2, width: L - 0.4, height: Wd - 0.4 }, g);
@@ -67,30 +63,37 @@
       sv("rect", { x: s ? L : -1.2, y: Wd / 2 - 3.66, width: 1.2, height: 7.32 }, g);
     });
     sv("circle", { cx: L / 2, cy: Wd / 2, r: 0.4, fill: "currentColor" }, g);
-    return { wrap: wrap, canvas: cv, svg: svg };
+    return { wrap: wrap, svg: svg };
   }
   // metres from feed coordinates; flip turns a side round so it attacks left
   function mx(x, flip) { return (flip ? 100 - x : x) / 100 * L; }
   function my(y, flip) { return (flip ? y : 100 - y) / 100 * Wd; }
 
-  // Density from weighted points [x, y, w] in feed coordinates, drawn as a single-hue ramp.
-  function paintHeat(cv, pts, flip, color) {
-    var ctx = cv.getContext("2d"), GW = 105, GH = 68, grid = new Float32Array(GW * GH), r = 5, s2 = 2 * 3.2 * 3.2, i, j;
+  // Density from weighted points [x, y, w] in feed coordinates. Drawn as blurred SVG cells, not canvas
+  // pixels: Firefox's fingerprinting protection can blank canvas pixel data, and SVG follows the theme.
+  var heatSeq = 0;
+  function paintHeat(svg, pts, flip, color) {
+    var GW = 105, GH = 68, grid = new Float32Array(GW * GH), r = 5, s2 = 2 * 3.2 * 3.2, i, j;
     var kern = []; for (j = -r * 2; j <= r * 2; j++) for (i = -r * 2; i <= r * 2; i++) { var w = Math.exp(-(i * i + j * j) / s2); if (w > 0.01) kern.push([i, j, w]); }
     pts.forEach(function (p) {
-      var cx = Math.round(mx(p[0], flip)), cy = Math.round(my(p[1], flip)), wt = p[2] || 1;
+      var cx = Math.min(GW - 1, Math.floor(mx(p[0], flip))), cy = Math.min(GH - 1, Math.floor(my(p[1], flip))), wt = p[2] || 1;
       kern.forEach(function (k) { var x = cx + k[0], y = cy + k[1]; if (x >= 0 && y >= 0 && x < GW && y < GH) grid[y * GW + x] += k[2] * wt; });
     });
-    var max = 0; for (i = 0; i < grid.length; i++) if (grid[i] > max) max = grid[i];
-    var img = ctx.createImageData(GW, GH), c = rgb(color);
-    for (i = 0; i < grid.length; i++) {
-      var v = max ? grid[i] / max : 0, a = v < 0.04 ? 0 : Math.pow(v, 0.7);
-      img.data[i * 4] = c[0]; img.data[i * 4 + 1] = c[1]; img.data[i * 4 + 2] = c[2]; img.data[i * 4 + 3] = Math.round(a * 235);
+    // 3 m cells keep the element count low (35 x 23); the blur smooths them
+    var C = 3, CW = Math.ceil(GW / C), CH = Math.ceil(GH / C), cells = new Float32Array(CW * CH), max = 0;
+    for (j = 0; j < GH; j++) for (i = 0; i < GW; i++) { var k2 = Math.floor(j / C) * CW + Math.floor(i / C); cells[k2] += grid[j * GW + i]; }
+    for (i = 0; i < cells.length; i++) if (cells[i] > max) max = cells[i];
+    var id = "hmblur" + (++heatSeq), defs = sv("defs", {}, null);
+    var f = sv("filter", { id: id, x: "-10%", y: "-10%", width: "120%", height: "120%" }, defs); sv("feGaussianBlur", { stdDeviation: 1.6 }, f);
+    var clip = sv("clipPath", { id: id + "c" }, defs); sv("rect", { x: 0, y: 0, width: L, height: Wd }, clip);
+    var g = sv("g", { filter: "url(#" + id + ")", fill: color }), outer = sv("g", { "clip-path": "url(#" + id + "c)" });
+    for (j = 0; j < CH; j++) for (i = 0; i < CW; i++) {
+      var v = max ? cells[j * CW + i] / max : 0;
+      if (v < 0.04) continue;
+      sv("rect", { x: i * C, y: j * C, width: C + 0.05, height: C + 0.05, "fill-opacity": Math.pow(v, 0.7).toFixed(3) }, g);
     }
-    var off = document.createElement("canvas"); off.width = GW; off.height = GH; off.getContext("2d").putImageData(img, 0, 0);
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(off, 0, 0, cv.width, cv.height);
+    outer.appendChild(g);
+    svg.insertBefore(outer, svg.firstChild); svg.insertBefore(defs, svg.firstChild);
   }
 
   // Shot markers. shots: [{x, y, kind, flip, color, label}]
@@ -151,10 +154,10 @@
       bar.appendChild(el("b", "hm-title", "Touches")); bar.appendChild(sel);
       sel.addEventListener("change", function () { mstate.view = sel.value; draw(); });
       var v = mstate.view, pts, color, who;
-      if (v === "home" || v === "away") { var t = m[v]; pts = plays.filter(function (p) { return p.team === t.id; }); color = cssVar(v === "home" ? "--home" : "--away", "#2343D6"); who = t.name; }
-      else { var aid = v.slice(2); pts = plays.filter(function (p) { return p.ath === aid; }); var tm = pts[0] && pts[0].team === m.away.id ? "away" : "home"; color = cssVar(tm === "home" ? "--home" : "--away", "#2343D6"); who = ctx.roster[aid] || "Player"; }
+      if (v === "home" || v === "away") { var t = m[v]; pts = plays.filter(function (p) { return p.team === t.id; }); color = v === "home" ? "var(--home)" : "var(--away)"; who = t.name; }
+      else { var aid = v.slice(2); pts = plays.filter(function (p) { return p.ath === aid; }); var tm = pts[0] && pts[0].team === m.away.id ? "away" : "home"; color = tm === "home" ? "var(--home)" : "var(--away)"; who = ctx.roster[aid] || "Player"; }
       var pt = pitch(left, "Heatmap of " + who + "'s touches, attacking to the right");
-      paintHeat(pt.canvas, pts.map(function (p) { return [p.x, p.y, 1]; }), false, color);
+      paintHeat(pt.svg, pts.map(function (p) { return [p.x, p.y, 1]; }), false, color);
       arrow(left, "Attacking →");
       left.appendChild(el("p", "note hm-cap", pts.length + " touches by " + who + (ctx.live ? " so far" : "")));
       // shots
@@ -182,7 +185,7 @@
     var a = el("div", "hm-col"); grid.appendChild(a);
     var ab = el("div", "hm-bar"); ab.appendChild(el("b", "hm-title", "Touches this season")); a.appendChild(ab);
     var p1 = pitch(a, "Season heatmap of touches, attacking to the right");
-    paintHeat(p1.canvas, pts, false, cssVar("--seq", "#1D3FBF"));
+    paintHeat(p1.svg, pts, false, "var(--seq)");
     arrow(a, "Attacking →");
     a.appendChild(el("p", "note hm-cap", entry.n.toLocaleString() + " touches"));
     var b = el("div", "hm-col"); grid.appendChild(b);

@@ -12,7 +12,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 
 | Section | What's in it |
 |---|---|
-| Matches | Each match on the selected matchday: live score and clock, plus a home/draw/away probability bar. The arrows jump between matchdays. |
+| Matches | Each match on the selected matchday: live score and clock, plus a home/draw/away probability bar. The arrows jump between matchdays. Times are in the viewer's own time zone, which is named on the page. |
 | Match centre | Team photos with crests; win, draw and loss chances with fair odds; expected goals; a final-score probability grid; over/under, both teams to score and clean sheets; win probability by minute; match stats; **touch heatmap** for either team or any player and a **shot map**, updating every minute while live; line-ups with each player's numbers; the event timeline |
 | News | The five latest ESPN stories for the competition |
 | Bracket | NWSL playoffs with title chances worked out through the bracket. Champions League knockouts, projected from the league-phase table until they start. |
@@ -100,7 +100,7 @@ python3 -m http.server 8000
 
 ## Publishing
 
-GitHub Pages serves the `main` branch root. CSS and JS links carry a version tag (`?v=9`). Raise it when those files change, so browsers don't keep a cached copy for up to 10 minutes.
+GitHub Pages serves the `main` branch root. CSS and JS links carry a version tag (`?v=10`). Raise it when those files change, so browsers don't keep a cached copy for up to 10 minutes.
 
 ## Data
 
