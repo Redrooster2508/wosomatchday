@@ -16,6 +16,11 @@ A static site with no build step and no server. The browser reads ESPN's public 
 - Win probability by minute, replayed from the goal and red-card timeline
 - Match stats (possession, shots, passes, saves, cards and more) and the event timeline
 - League table with qualification and relegation zones
+- News: the latest ESPN stories for each competition
+- Player stats:
+  - a searchable, sortable season table
+  - line-ups with each player's numbers in the match centre
+  - a page for every player (`player.html?l=<league>&id=<ESPN player id>`) with portrait, profile, season numbers, league percentiles, a per-match chart and the full match log
 - Bracket for knockout rounds:
   - NWSL playoffs, with each team's title chances worked out through the bracket
   - Champions League knockouts, with a projection from the league-phase table until they start
@@ -42,6 +47,20 @@ python3 -m http.server 8000
 
 Push this folder to a GitHub repository, then go to **Settings → Pages → Deploy from a branch → `main` / root**. The site appears at `https://<user>.github.io/<repo>/`.
 
+## Player stats database
+
+`data/<league>/players.json` holds season totals for every player; `data/<league>/matches.json` holds every finished match with each player's line (goals, assists, shots, shots on target, saves, goals conceded, cards, fouls, own goals). `tools/build_players.py` builds both from ESPN's match sheets, only reading matches it hasn't seen before:
+
+```sh
+python3 tools/build_players.py              # all four competitions
+python3 tools/build_players.py usa.nwsl     # one competition
+python3 tools/build_players.py --rebuild    # read every match again
+```
+
+The **Update player stats** GitHub Actions workflow (`.github/workflows/players.yml`) runs it every three hours and commits any changes, so the site stays current. Run it by hand from the repository's **Actions** tab.
+
+Player portraits on player pages come from Wikidata: the page looks the player up, and if she has a freely licensed portrait on Wikimedia Commons, shows it with the photographer and licence. Otherwise it shows her initials in her club's colours.
+
 ## Team photos
 
 The match centre shows the first of these that exists:
@@ -50,7 +69,18 @@ The match centre shows the first of these that exists:
 2. A shared photo listed in `photos/manifest.json`. Every visitor sees these.
 3. An illustrated squad line-up in the club's colours.
 
-`tools/fetch_photos.py` fills `photos/` from Wikimedia Commons. It only takes freely licensed images (CC BY, CC BY-SA, CC0 or public domain), and records each photographer and licence so the site can credit them under the photo. Commands:
+Photos are chosen by hand from a shortlist:
+
+```sh
+python3 tools/photo_candidates.py     # shortlist from Wikimedia Commons
+python3 tools/openverse_candidates.py # add Flickr and other Creative Commons sites, via Openverse
+python3 tools/fetch_photos.py --pick 19970="File:Chelsea FC Women team.jpg"   # a Commons file
+python3 tools/fetch_photos.py --pick 19970=ov:<openverse id>                  # an Openverse result
+```
+
+Credit and licence come from the source, and the site shows them under each photo. Only freely licensed images are used: CC BY, CC BY-SA, CC0, public domain, and, because this site is non-commercial, CC BY-NC and CC BY-NC-SA. Crediting a photographer doesn't make a copyrighted photo free to use, so photos from club or news sites are not used.
+
+`tools/fetch_photos.py` can also fill `photos/` automatically from Wikimedia Commons. It only takes freely licensed images (CC BY, CC BY-SA, CC0 or public domain), and records each photographer and licence so the site can credit them under the photo. Commands:
 
 ```sh
 python3 tools/fetch_photos.py               # teams without a photo yet

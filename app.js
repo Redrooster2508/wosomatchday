@@ -286,6 +286,7 @@
     });
     renderFlow(m, p);
     renderStats(m);
+    Players.lineups($("lineups"), state.summaryFor === m.id && state.summary ? state.summary.raw : null, m, LEAGUES[state.league].slug);
     renderTimeline(m);
   }
   function renderHeat(m, o, live) {
@@ -451,6 +452,37 @@
     $("tblNote").textContent = state.tableSeason || "";
   }
 
+  /* ---------- news ---------- */
+  function loadNews(force) {
+    var league = state.league;
+    if (!force && state.newsLeague === league && Date.now() - state.newsAt < TABLE_MS) return Promise.resolve();
+    return getJSON(SITE + LEAGUES[league].slug + "/news").then(function (d) {
+      if (league !== state.league) return;
+      state.news = (d.articles || []).filter(function (a) { return a.headline && a.links && a.links.web && /^https:\/\//.test(a.links.web.href); });
+      state.newsLeague = league; state.newsAt = Date.now();
+    }).catch(function () { /* news is optional */ });
+  }
+  function ago(iso) {
+    var mins = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (mins < 60) return Math.max(1, mins) + " min ago";
+    if (mins < 1440) return Math.round(mins / 60) + " h ago";
+    return fmtDay.format(new Date(iso));
+  }
+  function renderNews() {
+    var card = $("newsCard"), box = $("news"), list = state.newsLeague === state.league ? state.news || [] : [];
+    card.hidden = !list.length; box.textContent = "";
+    list.slice(0, 5).forEach(function (a, i) {
+      var link = el("a", "news-item" + (i === 0 ? " lead" : "")); link.href = a.links.web.href; link.target = "_blank"; link.rel = "noopener";
+      var img = a.images && a.images[0];
+      if (img && /^https:\/\//.test(img.url)) { var im = new Image(); im.src = img.url; im.alt = ""; im.loading = "lazy"; im.className = "news-img"; link.appendChild(im); }
+      var body = el("div", "news-body");
+      body.appendChild(el("span", "eyebrow", [ago(a.published), a.byline].filter(Boolean).join(" · ")));
+      body.appendChild(el("h3", "news-title", a.headline));
+      if (a.description) body.appendChild(el("p", "news-desc", a.description));
+      link.appendChild(body); box.appendChild(link);
+    });
+  }
+
   /* ---------- loading and polling ---------- */
   function setStatus(text, live, err) {
     var s = $("feedStatus"); s.textContent = ""; s.className = "status" + (err ? " err" : "");
@@ -515,7 +547,7 @@
       }
       var sel = state.matches.find(function (m) { return m.id === state.sel; });
       var needSummary = sel && (state.summaryFor !== sel.id || sel.state === "in" || wasLive[sel.id] !== sel.state);
-      return Promise.all([needSummary ? loadSummary(sel.id) : Promise.resolve(), loadBracket()]).then(function () {
+      return Promise.all([needSummary ? loadSummary(sel.id) : Promise.resolve(), loadBracket(), loadNews()]).then(function () {
         state.loading = false;
         renderAll();
         var live = anyLive();
@@ -531,7 +563,8 @@
     $("seasonLabel").textContent = (state.tableSeason || LEAGUES[state.league].name);
     $("dateLabel").textContent = state.day ? fmtDay.format(parseDay(state.day)) : "—";
     document.querySelectorAll(".tab").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.league === state.league)); });
-    renderFixtures(); renderMatch(); renderTable(); renderBracket();
+    renderFixtures(); renderMatch(); renderTable(); renderBracket(); renderNews();
+    if (state.playersFor !== state.league) { state.playersFor = state.league; Players.mount($("players"), LEAGUES[state.league].slug); }
   }
 
   /* ---------- bracket ---------- */

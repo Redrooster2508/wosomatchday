@@ -129,11 +129,44 @@ def save(man, tid, team_name, page):
     man[tid] = {"file": fname, "team": team_name, "credit": f"{artist}, {lic}, via Wikimedia Commons", "source": ii.get("descriptionurl", "")}
 
 
+SITES = {"flickr": "Flickr", "wikimedia": "Wikimedia Commons", "geographorguk": "Geograph", "nappy": "Nappy", "rawpixel": "rawpixel"}
+OV_LICENCE = re.compile(r"^(by|by-sa|cc0|pdm|by-nc|by-nc-sa)$")
+
+
+def pick_openverse(man, tid, team_name, ov_id):
+    """Use one Openverse result: download it and credit its creator, licence and source site."""
+    if not re.fullmatch(r"[0-9a-f-]{36}", ov_id):
+        print(f"  bad Openverse id  {ov_id}"); return
+    r = json.loads(get(f"https://api.openverse.org/v1/images/{ov_id}/"))
+    lic = (r.get("license") or "").lower()
+    if not OV_LICENCE.match(lic):
+        print(f"  refused (licence {lic!r})  {ov_id}"); return
+    url = r.get("url") or ""
+    if not url.startswith("https://"):
+        print(f"  no usable image url  {ov_id}"); return
+    ext = os.path.splitext(urllib.parse.urlparse(url).path)[1].lower()
+    ext = ext if ext in (".jpg", ".jpeg", ".png", ".webp") else ".jpg"
+    for old in os.listdir(PHOTOS):
+        if os.path.splitext(old)[0] == tid:
+            os.remove(os.path.join(PHOTOS, old))
+    data = get(url)
+    with open(os.path.join(PHOTOS, tid + ext), "wb") as f:
+        f.write(data)
+    lic_text = "CC0" if lic == "cc0" else "Public domain" if lic == "pdm" else f"CC {lic.upper()} {r.get('license_version') or ''}".strip()
+    site = SITES.get(r.get("source") or "", (r.get("source") or "the web").title())
+    creator = (r.get("creator") or "Unknown author")[:80]
+    man[tid] = {"file": tid + ext, "team": team_name, "credit": f"{creator}, {lic_text}, via {site}", "source": r.get("foreign_landing_url") or ""}
+    print(f"  saved  {team_name:<26} {(r.get('title') or '')[:60]} ({site})")
+
+
 def pick(man, choices):
     """--pick id="File:Title" ...: use exactly these Commons files."""
     names = {t["id"]: t["name"] for t in teams()}
     for c in choices:
         tid, title = c.split("=", 1)
+        if title.startswith("ov:"):
+            pick_openverse(man, tid, names.get(tid, tid), title[3:])
+            continue
         p = {"action": "query", "format": "json", "titles": title, "prop": "imageinfo", "iiprop": "url|extmetadata|size", "iiurlwidth": "1280"}
         page = next(iter(json.loads(get("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(p)))["query"]["pages"].values()))
         if "imageinfo" not in page:

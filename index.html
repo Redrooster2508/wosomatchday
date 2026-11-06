@@ -7,7 +7,7 @@
 <meta name="description" content="Live scores, match statistics and win probabilities for the WSL, Liga F and NWSL.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <div class="wrap">
@@ -79,9 +79,18 @@
       </div>
     </div>
     <div class="panel">
+      <div class="sec-head"><h3>Line-ups and player stats</h3><span class="eyebrow">Goals, assists, shots, saves and cards</span></div>
+      <div id="lineups"></div>
+    </div>
+    <div class="panel">
       <div class="sec-head"><h3>Timeline</h3></div>
       <ol class="timeline" id="timeline"></ol>
     </div>
+  </section>
+
+  <section class="card" id="newsCard" aria-labelledby="newsH" hidden>
+    <div class="sec-head"><h2 id="newsH">News</h2><span class="eyebrow">Latest stories from ESPN</span></div>
+    <div class="news" id="news"></div>
   </section>
 
   <section class="card" id="bracketCard" aria-labelledby="bkH" hidden>
@@ -95,18 +104,24 @@
     <div class="zones" id="zones"></div>
   </section>
 
+  <section class="card" aria-labelledby="plH">
+    <div class="sec-head"><h2 id="plH">Player stats</h2><span class="eyebrow">Season totals · click a player for their page</span></div>
+    <div id="players"></div>
+  </section>
+
   <footer class="foot">
     <h3>How the probabilities work</h3>
     <p class="note">When bookmaker odds exist, the margin is removed and the implied home and away win chances are fitted to a pair of expected-goal rates. When odds are missing, the rates come from each team's goals scored and conceded per game this season, against the league average, with home advantage. Scorelines follow a Poisson model with the Dixon–Coles low-score correction (ρ = −0.08). During a match, only the time left is simulated, on top of the current score, and a red card cuts that team's scoring rate by a quarter.</p>
     <p class="note">"Draw" means level after 90 minutes; in a knockout match, such as the NWSL playoffs, the tie then goes to extra time or penalties.</p>
-    <p class="note">Data: ESPN's public scores feed, refreshed every 30 seconds while a match is live. Odds are shown for analysis only. Team photos are freely licensed images from Wikimedia Commons, credited under each photo; a photo you upload yourself stays in your browser.</p>
+    <p class="note">Data: ESPN's public scores feed, refreshed every 30 seconds while a match is live. Player stats are rebuilt from every finished match's line-ups every few hours. Odds are shown for analysis only. Team photos are freely licensed images from Wikimedia Commons, credited under each photo; a photo you upload yourself stays in your browser.</p>
   </footer>
 </div>
 <div id="tip" hidden></div>
 <input type="file" id="fileIn" accept="image/*" hidden>
-<script src="model.js?v=5"></script>
-<script src="photos.js?v=5"></script>
-<script src="bracket.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="model.js?v=7"></script>
+<script src="photos.js?v=7"></script>
+<script src="bracket.js?v=7"></script>
+<script src="players.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Player · Matchday Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css?v=7">
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-title">
+      <a class="eyebrow back" id="back" href="./">← Matchday Hub</a>
+      <span class="eyebrow" id="pLeague">Player</span>
+    </div>
+  </header>
+
+  <section class="pp-hero" aria-labelledby="pName">
+    <figure class="pp-photo" id="pPhoto"><div class="pp-initials" id="pInitials"></div><figcaption class="ph-credit" id="pCredit"></figcaption></figure>
+    <div class="pp-id">
+      <div class="pp-club" id="pClub"></div>
+      <h1 id="pName">Loading…</h1>
+      <dl class="pp-facts" id="pFacts"></dl>
+    </div>
+  </section>
+
+  <section aria-labelledby="sH">
+    <div class="sec-head"><h2 id="sH">Season</h2><span class="eyebrow" id="pSeason"></span></div>
+    <div class="pl-tiles pp-tiles" id="pTiles"></div>
+  </section>
+
+  <div class="pp-two">
+    <section class="card" aria-labelledby="rH">
+      <div class="sec-head"><h3 id="rH">Against the league</h3><span class="eyebrow">Percentile among players with 3+ apps</span></div>
+      <div id="pRanks" class="pp-ranks"></div>
+    </section>
+    <section class="card" aria-labelledby="cH">
+      <div class="sec-head"><h3 id="cH">Shots and goals by match</h3><span class="eyebrow">Oldest to newest · <span class="sw" style="background:var(--draw)"></span>Shots <span class="sw" style="background:var(--seq);margin-left:8px"></span>On target <span class="dotkey"></span>Goal</span></div>
+      <div class="chart" id="pChart"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="lH">
+    <div class="sec-head"><h2 id="lH">Match by match</h2></div>
+    <div class="tbl-wrap" id="pLog"></div>
+  </section>
+
+  <footer class="foot">
+    <p class="note" id="pSource">Stats are built from ESPN's public match data. Profile details from ESPN. Player photos are freely licensed portraits from Wikimedia Commons, found through Wikidata and credited under the photo.</p>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+<script src="player-page.js?v=7"></script>
+</body>
+</html>

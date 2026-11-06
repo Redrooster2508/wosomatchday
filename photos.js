@@ -95,7 +95,7 @@
             var e = typeof m[id] === "string" ? { file: m[id] } : m[id];
             if (!e || typeof e.file !== "string" || /^[a-z]+:|\.\.|\//i.test(e.file)) return;
             shared[id] = "photos/" + e.file;
-            if (e.credit) credits[id] = { text: String(e.credit), source: /^https:\/\/commons\.wikimedia\.org\//.test(e.source || "") ? e.source : "" };
+            if (e.credit) credits[id] = { text: String(e.credit), source: /^https:\/\/[^\s"<>]+$/.test(e.source || "") ? e.source : "" };
           });
         })
         .catch(function () {});
