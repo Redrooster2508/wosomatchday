@@ -13,13 +13,15 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 | Section | What's in it |
 |---|---|
 | Matches | Each match on the selected matchday: live score and clock, plus a home/draw/away probability bar. The arrows jump between matchdays. Times are in the viewer's own time zone, which is named on the page. |
-| Match centre | Team photos with crests; win, draw and loss chances with fair odds; expected goals; a final-score probability grid; over/under, both teams to score and clean sheets; win probability by minute; match stats; **touch heatmap** for either team or any player and a **shot map**, updating every minute while live; line-ups with each player's numbers; the event timeline |
+| Match centre | Team photos with crests; win, draw and loss chances with fair odds; expected goals; a final-score probability grid; over/under, both teams to score and clean sheets; win probability by minute; match stats; **touch heatmap**, **progressive pass map** and **shot map** for either team or any player, a **goal-mouth chart**, updating every minute while live; **head to head** (earlier league meetings, last five seasons); line-ups with each player's numbers; the event timeline |
 | News | The five latest ESPN stories for the competition |
 | Season forecast | Predicted winner and each team's chance of the title and each table zone, from 10,000 simulations of the remaining fixtures (NWSL: from the playoff bracket) |
 | Bracket | NWSL playoffs with title chances worked out through the bracket. Champions League knockouts, projected from the league-phase table until they start. |
 | League table | Standings with qualification and relegation zones, goals scored and conceded per game |
 | Player stats | Season table for every player: search, club and position filters, sortable columns |
-| Player pages | `player.html?l=<league>&id=<ESPN player id>`: portrait, profile, season numbers, league percentiles, a per-match chart, **season heatmap and shot map**, and the full match log |
+| Player stats | (also) minutes, goals per 90, goals + assists per 90, progressive passes |
+| Player pages | `player.html?l=<league>&id=<ESPN player id>`: portrait, profile, season numbers with minutes and per-90 rates, league percentiles per 90, a per-match chart, season heatmap, shot map, progressive pass map and goal mouth, and the match log with minutes |
+| Team pages | `team.html?l=<league>&id=<ESPN team id>`: photo, record and form, season forecast, results and fixtures, squad with minutes and per-90, team heatmap, shots, passes and goal mouth, head to head against any opponent |
 
 ## Files
 
@@ -31,6 +33,8 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 | `tools/build_forecast.py` | Season forecasts (`data/<league>/forecast.json`) |
 | `bracket.js` | Knockout bracket, title chances, pre-knockout projection |
 | `players.js` | Player stats table and match-centre line-ups |
+| `team.html`, `team-page.js` | Team pages |
+| `h2h.js` | Head to head from ESPN team schedules |
 | `heat.js` | Pitch drawing, touch heatmaps and shot maps from play-by-play |
 | `player.html`, `player-page.js` | Individual player pages |
 | `photos.js` | Team photos: uploaded, shared (`photos/manifest.json`) or illustrated |
@@ -58,7 +62,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 - `data/<league>/matches.json`: every finished match, with each player's line (goals, assists, shots, shots on target, saves, goals conceded, cards, fouls, own goals)
 - `data/<league>/players.json`: season totals per player, plus club names, logos and colours
 
-`tools/build_heat.py` then reads each match's play-by-play (about 1,500 events with pitch coordinates) and writes `data/<league>/heat.json`: each player's touches on a 24 × 16 grid in her attacking direction, plus every shot with its spot and outcome. ESPN's Liga F play-by-play has no pitch positions, so Liga F has no heatmaps.
+`tools/build_heat.py` then reads each match's play-by-play (about 1,500 events with pitch coordinates) and writes `data/<league>/heat.json`: each player's touches on a 24 × 16 grid in her attacking direction; every shot with its spot, outcome and where it crossed the goal line; passes and **progressive passes** (ending at least 25% closer to goal, in the attacking half; corners and passes ending on the goal line excluded; ESPN doesn't mark completed passes, so these are attempts); and **minutes played**, from the starting XI, substitutions and red cards. It also writes a small `data/<league>/minutes.json` for the player table. ESPN's Liga F play-by-play has no pitch positions, so Liga F has no heatmaps.
 
 Both only fetch matches they haven't stored yet.
 

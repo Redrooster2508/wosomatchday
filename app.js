@@ -259,7 +259,7 @@
     act.appendChild(up);
     if (Photos.hasUpload(t.id)) { var rs = el("button", "btn", "Remove my photo"); rs.type = "button"; rs.addEventListener("click", function () { Photos.clear(t.id); renderMatch(); }); act.appendChild(rs); }
     node.appendChild(act);
-    node.appendChild(el("div", "tname", t.name));
+    var tn = el("a", "tname pl-link", t.name); tn.href = "team.html?l=" + encodeURIComponent(LEAGUES[state.league].slug) + "&id=" + encodeURIComponent(t.id); node.appendChild(tn);
     var meta = row ? ord(row.rank) + " · " + row.pts + (row.pts === 1 ? " pt · " : " pts · ") + row.w + "W " + row.d + "D " + row.l + "L · GD " + (row.gd > 0 ? "+" : "") + row.gd : (t.record || "");
     node.appendChild(el("div", "tmeta", meta));
     var lf = lastFive(t.id);
@@ -311,6 +311,15 @@
     ((state.summaryFor === m.id && state.summary && state.summary.raw.rosters) || []).forEach(function (r) { (r.roster || []).forEach(function (p) { if (p.athlete) roster[String(p.athlete.id)] = p.athlete.displayName; }); });
     Heat.matchPanel($("pitchHeat"), { slug: LEAGUES[state.league].slug, match: m, roster: roster, live: m.state === "in", tip: function (e, t) { if (e) showTip(e, t); else hideTip(); } });
     renderTimeline(m);
+    renderH2H(m);
+  }
+  var h2hFor = null;
+  function renderH2H(m) {
+    var key = state.league + ":" + m.home.id + ":" + m.away.id;
+    if (h2hFor === key) return;
+    h2hFor = key;
+    var box = $("h2h"); box.textContent = ""; box.appendChild(el("p", "note", "Loading meetings…"));
+    H2H.load(LEAGUES[state.league].slug, m.home.id, m.away.id).then(function (ms) { if (h2hFor === key) H2H.render(box, ms.filter(function (x) { return x.id !== m.id; }), m.home.id, m.home.name, m.away.name); });
   }
   function renderHeat(m, o, live) {
     var hm = $("heat"); hm.textContent = ""; hm.appendChild(el("span", "ax", ""));
@@ -465,7 +474,8 @@
       row.appendChild(pos);
       var tc = el("td", "l team"), inner = el("span", "tc");
       if (r.logo) { var im = new Image(); im.src = r.logo; im.alt = ""; inner.appendChild(im); }
-      inner.appendChild(el("span", null, r.name)); tc.appendChild(inner); row.appendChild(tc);
+      var tl = el("a", "pl-link", r.name); tl.href = "team.html?l=" + encodeURIComponent(LEAGUES[state.league].slug) + "&id=" + encodeURIComponent(r.id);
+      inner.appendChild(tl); tc.appendChild(inner); row.appendChild(tc);
       [r.gp, r.w, r.d, r.l, r.gf, r.ga, (r.gd > 0 ? "+" : "") + r.gd].forEach(function (v) { row.appendChild(el("td", null, String(v))); });
       row.appendChild(el("td", "pts", String(r.pts)));
       row.appendChild(el("td", "wide", r.gp ? (r.gf / r.gp).toFixed(2) : "—"));

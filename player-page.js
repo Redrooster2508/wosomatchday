@@ -31,13 +31,18 @@
     return "";
   }
 
-  Promise.all([getJSON("data/" + slug + "/players.json"), getJSON("data/" + slug + "/matches.json")]).then(function (res) {
-    var P = res[0], M = res[1], p = P.players.find(function (x) { return x.id === id; });
+  Promise.all([getJSON("data/" + slug + "/players.json"), getJSON("data/" + slug + "/matches.json"), getJSON("data/" + slug + "/heat.json").catch(function () { return null; })]).then(function (res) {
+    var P = res[0], M = res[1], H = res[2], p = P.players.find(function (x) { return x.id === id; });
+    var hp = H && H.players[id] || null;
+    if (hp && hp.m) { p.min = hp.m; p.mm = hp.mm || {}; }
+    // minutes for everyone, for per-90 percentiles
+    if (H) P.players.forEach(function (x) { var e = H.players[x.id]; if (e && e.m) x.min = e.m; });
     if (!p) { $("pName").textContent = "Player not found in this competition"; return; }
     var team = P.teams[p.team] || {};
     document.title = p.name + " · Matchday Hub";
     $("pName").textContent = p.name;
-    var club = $("pClub"); if (team.logo) { var im = new Image(); im.src = team.logo; im.alt = ""; club.appendChild(im); } club.appendChild(el("span", null, team.name || ""));
+    var club = $("pClub"); if (team.logo) { var im = new Image(); im.src = team.logo; im.alt = ""; club.appendChild(im); }
+    var cl = el("a", "pl-link", team.name || ""); cl.href = "team.html?l=" + encodeURIComponent(slug) + "&id=" + encodeURIComponent(p.team); club.appendChild(cl);
     $("pInitials").textContent = p.name.split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join("");
     $("pSeason").textContent = (P.season || "") + " · " + P.matches + " matches in the database";
     facts([["Position", p.pos === "SUB" ? "" : p.pos], ["Shirt", p.no ? "#" + p.no : ""]]);
@@ -49,12 +54,11 @@
       $("cH").nextElementSibling.innerHTML = 'Oldest to newest · <span class="sw" style="background:var(--seq)"></span>Saves <span class="dotkey" style="background:var(--loss)"></span>Goal conceded';
     }
     chart(log, gk);
-    table(log, M);
+    table(log, M, p.mm);
     profile(p, team);
-    getJSON("data/" + slug + "/heat.json").then(function (h) {
-      if (!Object.keys(h.players || {}).length) { $("pHeat").appendChild(el("p", "note", "ESPN's play-by-play for this competition has no pitch positions, so there's no heatmap.")); return; }
-      Heat.seasonPanel($("pHeat"), h.players[p.id], h.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
-    }).catch(function () { $("pHeat").appendChild(el("p", "note", "Heatmaps for this competition haven't been built yet.")); });
+    if (!H) $("pHeat").appendChild(el("p", "note", "Heatmaps for this competition haven't been built yet."));
+    else if (!Object.keys(H.players || {}).length) $("pHeat").appendChild(el("p", "note", "ESPN's play-by-play for this competition has no pitch positions, so there's no heatmap."));
+    else Heat.seasonPanel($("pHeat"), hp, H.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
   }).catch(function () { $("pName").textContent = "Player stats for this competition haven't been built yet."; });
 
   function facts(list) {
@@ -71,21 +75,27 @@
   function tiles(p) {
     var gk = line(p.pos) === "GK", box = $("pTiles");
     var conv = p.SHOT ? Math.round(100 * p.G / p.SHOT) + "%" : "—";
+    function p90(v) { return p.min ? (v / p.min * 90).toFixed(2) : "—"; }
     var list = gk
-      ? [["Apps", p.apps], ["Starts", p.starts], ["Saves", p.SV], ["Conceded", p.GA], ["Clean sheets", p.cs], ["Saves/app", p.apps ? (p.SV / p.apps).toFixed(1) : "—"], ["Cards", p.YC + p.RC]]
-      : [["Apps", p.apps], ["Starts", p.starts], ["Goals", p.G], ["Assists", p.A], ["Shots", p.SHOT], ["On target", p.SOG], ["Conversion", conv], ["Fouls won", p.FA], ["Cards", p.YC + p.RC]];
+      ? [["Apps", p.apps], ["Minutes", p.min || "—"], ["Saves", p.SV], ["Conceded", p.GA], ["Clean sheets", p.cs], ["Saves per 90", p90(p.SV)], ["Cards", p.YC + p.RC]]
+      : [["Apps", p.apps], ["Minutes", p.min || "—"], ["Goals", p.G], ["Assists", p.A], ["Goals per 90", p90(p.G)], ["Shots", p.SHOT], ["Shots per 90", p90(p.SHOT)], ["Conversion", conv], ["Cards", p.YC + p.RC]];
     list.forEach(function (t) { var d = el("div", "pl-tile"); d.appendChild(el("b", "num", String(t[1]))); d.appendChild(el("span", null, t[0])); box.appendChild(d); });
   }
 
   // Percentile against everyone with 3+ appearances (goalkeepers against goalkeepers).
   function ranks(p, all) {
-    var gk = line(p.pos) === "GK", pool = all.filter(function (x) { return x.apps >= 3 && (line(x.pos) === "GK") === gk; });
+    var gk = line(p.pos) === "GK", per90 = !!p.min;
+    // per 90 minutes when minutes are known (needs 270+ minutes), otherwise per appearance
+    var pool = all.filter(function (x) { return (per90 ? x.min >= 270 : x.apps >= 3) && (line(x.pos) === "GK") === gk; });
+    var unit = per90 ? " per 90" : " per app";
+    function rate(v, x) { return per90 ? v / x.min * 90 : v / x.apps; }
     var metrics = gk
-      ? [["Saves per app", function (x) { return x.SV / x.apps; }, 1], ["Clean sheets", function (x) { return x.cs; }, 0], ["Conceded per app (fewer is better)", function (x) { return -x.GA / x.apps; }, 2, true]]
-      : [["Goals per app", function (x) { return x.G / x.apps; }, 2], ["Assists per app", function (x) { return x.A / x.apps; }, 2], ["Shots per app", function (x) { return x.SHOT / x.apps; }, 2],
-         ["Shots on target %", function (x) { return x.SHOT ? x.SOG / x.SHOT * 100 : 0; }, 0], ["Fouls won per app", function (x) { return x.FA / x.apps; }, 2]];
+      ? [["Saves" + unit, function (x) { return rate(x.SV, x); }, 2], ["Clean sheets", function (x) { return x.cs; }, 0], ["Conceded" + unit + " (fewer is better)", function (x) { return -rate(x.GA, x); }, 2, true]]
+      : [["Goals" + unit, function (x) { return rate(x.G, x); }, 2], ["Assists" + unit, function (x) { return rate(x.A, x); }, 2], ["Shots" + unit, function (x) { return rate(x.SHOT, x); }, 2],
+         ["Shots on target %", function (x) { return x.SHOT ? x.SOG / x.SHOT * 100 : 0; }, 0], ["Fouls won" + unit, function (x) { return rate(x.FA, x); }, 2]];
+    $("rH").nextElementSibling.textContent = "Percentile among " + (gk ? "goalkeepers" : "outfield players") + (per90 ? " with 270+ minutes" : " with 3+ apps");
     var box = $("pRanks");
-    if (p.apps < 3 || pool.length < 5) { box.appendChild(el("p", "note", "Percentiles appear after three appearances.")); return; }
+    if ((per90 ? p.min < 270 : p.apps < 3) || pool.length < 5) { box.appendChild(el("p", "note", per90 ? "Percentiles appear after 270 minutes." : "Percentiles appear after three appearances.")); return; }
     metrics.forEach(function (m) {
       var v = m[1](p), vals = pool.map(m[1]).sort(function (a, b) { return a - b; });
       var below = vals.filter(function (x) { return x < v; }).length, pctile = Math.round(100 * below / (vals.length - 1 || 1));
@@ -96,7 +106,7 @@
       var shown = m[3] ? -v : v;
       row.appendChild(el("b", "num", shown.toFixed(m[2]) + (m[0].indexOf("%") > 0 ? "%" : "")));
       row.appendChild(el("span", "pp-rk num", ord(rank) + " of " + vals.length));
-      bar.addEventListener("pointermove", function (e) { showTip(e, m[0] + ": " + shown.toFixed(m[2]) + "\nBetter than " + pctile + "% of " + (gk ? "goalkeepers" : "outfield players") + " with 3+ apps"); });
+      bar.addEventListener("pointermove", function (e) { showTip(e, m[0] + ": " + shown.toFixed(m[2]) + "\nBetter than " + pctile + "% of " + (gk ? "goalkeepers" : "outfield players") + (per90 ? " with 270+ minutes" : " with 3+ apps")); });
       bar.addEventListener("pointerleave", hideTip);
       box.appendChild(row);
     });
@@ -144,10 +154,10 @@
     });
   }
 
-  function table(rows) {
+  function table(rows, M, mm) {
     var box = $("pLog"); box.textContent = "";
     var t = el("table", "pl-log"), thead = el("thead"), hr = el("tr");
-    ["Date", "Opponent", "Result", "", "Goals", "Assists", "Shots", "On target", "Saves", "Fouls", "Cards"].forEach(function (x, i) { hr.appendChild(el("th", i < 2 ? "l" : "", x)); });
+    ["Date", "Opponent", "Result", "", "Min", "Goals", "Assists", "Shots", "On target", "Saves", "Fouls", "Cards"].forEach(function (x, i) { hr.appendChild(el("th", i < 2 ? "l" : "", x)); });
     thead.appendChild(hr); t.appendChild(thead);
     var tb = el("tbody");
     rows.slice().reverse().forEach(function (r) {
@@ -156,6 +166,7 @@
       var o = el("td", "l"), oi = el("span", "tc"); if (r.opp.logo) { var im = new Image(); im.src = r.opp.logo; im.alt = ""; im.loading = "lazy"; oi.appendChild(im); } oi.appendChild(el("span", null, (r.home ? "v " : "at ") + (r.opp.name || ""))); o.appendChild(oi); tr.appendChild(o);
       var rc = el("td"); rc.appendChild(el("span", "res " + r.res, r.res + " " + r.gf + "–" + r.ga)); tr.appendChild(rc);
       tr.appendChild(el("td", "pl-sub", r.start ? "Start" : "Sub"));
+      tr.appendChild(el("td", "num", mm && mm[r.id] ? mm[r.id] + "'" : "—"));
       [r.s.G, r.s.A, r.s.SHOT, r.s.SOG, r.s.SV, r.s.FC].forEach(function (v) { tr.appendChild(el("td", v ? "hit" : "zero", String(v))); });
       var cards = el("td"); for (var y = 0; y < r.s.YC; y++) cards.appendChild(el("span", "bk-card y", "")); for (var z = 0; z < r.s.RC; z++) cards.appendChild(el("span", "bk-card r", ""));
       tr.appendChild(cards); tb.appendChild(tr);

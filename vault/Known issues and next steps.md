@@ -12,9 +12,9 @@ tags: [todo]
 - [ ] NWSL whole-year scoreboard is about 2.5 MB; the builder and bracket avoid it where they can.
 - [ ] The ESPN feed is unofficial; if it changes shape, the site and builder need updating. See [[Data sources (ESPN)]].
 
+## Done (2026-11-06)
+- [x] Goal-mouth chart · pass maps and progressive passes · minutes and per-90 · team pages · head to head. See [[Heatmaps]] and [[Team pages]].
+
 ## Ideas
-- Goal-mouth chart: where shots crossed the line (`goalPositionY`/`Z` are in the feed)
-- Pass maps and progressive passes from the same play-by-play
-- Minutes played (needs substitution times from the event timeline), for per-90 stats
-- Team pages, like the player pages
-- Head-to-head history between two clubs
+- Head to head across competitions (schedules are per competition)
+- Expected goals (xG) model from shot positions

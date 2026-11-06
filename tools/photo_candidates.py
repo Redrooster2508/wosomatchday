@@ -73,12 +73,35 @@ def category_files(t, words):
         title = r["title"].lower()
         if any(w in title for w in words) and (t["league"] == "usa.nwsl" or t["id"] in WOMEN_ONLY or WOMEN.search(title)) and not BAD.search(title):
             cats.append(r["title"])
+    # follow sub-folders (seasons, matches) up to two levels, preferring ones named for 2023 onward
+    seen, frontier = set(), cats[:2]
+    for depth in range(3):
+        nxt = []
+        for c in frontier:
+            if c in seen or len(seen) > 40:
+                continue
+            seen.add(c)
+            try:
+                sub = json.loads(get("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(
+                    {"action": "query", "format": "json", "list": "categorymembers", "cmtitle": c, "cmtype": "subcat", "cmlimit": "200"})))
+            except Exception:
+                continue
+            for m in (sub.get("query") or {}).get("categorymembers", []):
+                ys = [int(y) for y in YEAR.findall(m["title"])]
+                if (not ys or max(ys) >= SINCE) and not BAD.search(m["title"].lower()):
+                    nxt.append(m["title"])
+            time.sleep(0.2)
+        nxt.sort(key=lambda t: -max([int(y) for y in YEAR.findall(t)] or [0]))  # newest first
+        frontier = nxt
     files = []
-    for c in cats[:2]:
-        dd = api({"action": "query", "generator": "categorymembers", "gcmtitle": c, "gcmtype": "file", "gcmlimit": "200", "gcmsort": "timestamp", "gcmdir": "desc"})
-        files += list((dd.get("query") or {}).get("pages", {}).values())
+    for c in sorted(seen, key=lambda t: -max([int(y) for y in YEAR.findall(t)] or [0]))[:12]:
+        try:
+            dd = api({"action": "query", "generator": "categorymembers", "gcmtitle": c, "gcmtype": "file", "gcmlimit": "100", "gcmsort": "timestamp", "gcmdir": "desc"})
+            files += list((dd.get("query") or {}).get("pages", {}).values())
+        except Exception:
+            pass
         time.sleep(0.3)
-    return files, cats
+    return files, sorted(seen)
 
 
 def judge(page, t, words, from_cat):

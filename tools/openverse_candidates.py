@@ -23,8 +23,8 @@ from photo_candidates import OUT, SINCE, TEAMISH, YEAR, club_words  # noqa: E402
 LICENCES = "by,by-sa,cc0,pdm,by-nc,by-nc-sa"
 
 
-def search(q):
-    p = {"q": q, "license": LICENCES, "page_size": "20"}
+def search(q, page=1):
+    p = {"q": q, "license": LICENCES, "page_size": "20", "page": str(page), "source": "flickr"}
     d = json.loads(get("https://api.openverse.org/v1/images/?" + urllib.parse.urlencode(p)))
     return d.get("results", [])
 
@@ -40,11 +40,20 @@ def judge(r, t, words):
     s, why = 1, []
     if TEAMISH.search(r.get("title") or ""):
         s += 5; why.append("team")
-    # Openverse has no capture date, so the title or tags must name a recent year
+    # Openverse has no capture date. A year in the title or tags decides; otherwise use the date Openverse
+    # indexed the photo, which for Flickr follows the upload within weeks (so a 2023+ index means a recent upload).
     years = [int(y) for y in YEAR.findall(text)]
-    if not years or max(years) < SINCE:
-        return None
-    y = max(years); s += 4 if y >= 2025 else 2; why.append(str(y))
+    if years:
+        y = max(years)
+        if y < SINCE:
+            return None
+        why.append(str(y))
+    else:
+        y = int((r.get("indexed_on") or "0")[:4] or 0)
+        if y < SINCE:
+            return None
+        why.append(f"indexed {y}")
+    s += 4 if y >= 2025 else 2
     w, h = r.get("width") or 0, r.get("height") or 1
     if 1.25 <= w / h <= 2.2:
         s += 1
@@ -64,9 +73,9 @@ def main():
         names = NAMES.get(t["id"]) or [t["name"]]
         women = "" if (t["league"] == "usa.nwsl" or t["id"] in WOMEN_ONLY) else (" femenino" if t["league"] == "esp.w.1" else " women")
         found = {}
-        for q in [f"{names[0]}{women} team", f"{names[0]}{women} 2025", f"{names[0]}{women} 2026", f"{t['name']}{women} football"]:
+        for q, page in [(f"{names[0]}{women}", 1), (f"{names[0]}{women}", 2), (f"{names[0]}{women}", 3), (f"{names[0]}{women} 2025", 1), (f"{names[0]}{women} 2026", 1), (f"{t['name']}{women} football", 1)]:
             try:
-                res = search(q)
+                res = search(q, page)
             except Exception as e:
                 print("  search failed", t["name"], e); res = []
             for r in res:
@@ -74,7 +83,7 @@ def main():
                 if j and r["id"] not in found:
                     found[r["id"]] = (j, r)
             time.sleep(1.2)  # stay well inside the anonymous rate limit
-        best = sorted(found.values(), key=lambda x: -x[0][0])[:6]
+        best = sorted(found.values(), key=lambda x: -x[0][0])[:10]
         entry["candidates"] = [c for c in entry["candidates"] if c.get("provider") != "openverse"] + [{
             "provider": "openverse", "id": "ov:" + r["id"], "title": r.get("title") or "", "score": j[0], "why": j[1], "year": j[2],
             "licence": f"CC {r.get('license', '').upper()} {r.get('license_version') or ''}".strip().replace("CC CC0", "CC0").replace("CC PDM", "Public domain"),

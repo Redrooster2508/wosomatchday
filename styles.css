@@ -263,7 +263,7 @@ td.pts{font-weight:700}
 .pl-pos{display:flex;gap:4px;flex-wrap:wrap}
 .pl-chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer}
 .pl-chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.pl-table{min-width:900px}
+.pl-table{min-width:1100px}
 .pl-table th{white-space:nowrap}
 .pl-sort{all:unset;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit}
 .pl-sort:hover{color:var(--ink)}
@@ -398,3 +398,19 @@ td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-tra
 .fc-p{white-space:nowrap}
 .fc-bar{display:inline-block;width:64px;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px}
 .fc-bar i{display:block;height:100%;background:var(--seq)}
+
+.hm-goal{width:100%;max-width:100%;aspect-ratio:116/50;background:var(--sunk);border-radius:4px;color:var(--muted);padding:6px}
+.hm-goal svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* team pages and head to head */
+.tp-hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:end}
+.tp-list{min-width:0}
+.tp-list td{white-space:nowrap}
+.tp-squad{min-width:760px}
+.h2h-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+.h2h-bar{margin-bottom:8px}
+.h2h-table{min-width:0}
+.h2h-score{text-align:center;font-family:var(--f-display);font-weight:800;font-size:18px}
+.intl-pick+div{margin-top:8px}
+@media (max-width:760px){.tp-hero{grid-template-columns:1fr}}
+a.tname{display:block;color:inherit;text-decoration:none}a.tname:hover{text-decoration:underline}

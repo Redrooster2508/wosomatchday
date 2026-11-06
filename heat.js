@@ -36,7 +36,9 @@
           if (p.fieldPositionX == null || SKIP.test(t)) return;
           var part = p.participants && p.participants[0];
           out.push({ type: t, shot: shotKind(t), team: idFrom(p.team && p.team.$ref, "teams"), ath: part ? idFrom(part.athlete && part.athlete.$ref, "athletes") : null,
-            x: +p.fieldPositionX, y: +p.fieldPositionY, min: p.clock && p.clock.displayValue || "", text: p.text || "" });
+            x: +p.fieldPositionX, y: +p.fieldPositionY, x2: p.fieldPosition2X == null ? null : +p.fieldPosition2X, y2: p.fieldPosition2Y == null ? null : +p.fieldPosition2Y,
+            gy: p.goalPositionY == null ? null : +p.goalPositionY, gz: p.goalPositionZ == null ? null : +p.goalPositionZ,
+            min: p.clock && p.clock.displayValue || "", text: p.text || "" });
         });
       });
       return out;
@@ -109,6 +111,52 @@
       if (onHover) { hit.addEventListener("pointermove", function (e) { onHover(e, s.label); }); hit.addEventListener("pointerleave", function () { onHover(null); }); }
     });
   }
+  // A pass is progressive when it ends at least 25% closer to the opponent's goal, in the attacking half.
+  function progressive(x, y, x2, y2) {
+    // corners start on the goal line, and passes "ending" there mostly went out of play
+    if (x2 == null || x2 < 50 || x2 >= 99 || x >= 99) return false;
+    var d1 = Math.hypot((100 - x) * 1.05, (50 - y) * 0.68), d2 = Math.hypot((100 - x2) * 1.05, (50 - y2) * 0.68);
+    return d2 <= 0.75 * d1;
+  }
+  // Arrows on a pitch: passes [{x, y, x2, y2, flip}]
+  var arrowSeq = 0;
+  function paintPasses(svg, passes, color) {
+    var id = "hmarrow" + (++arrowSeq), defs = sv("defs", {}, null);
+    var mk = sv("marker", { id: id, viewBox: "0 0 6 6", refX: 5, refY: 3, markerWidth: 4, markerHeight: 4, orient: "auto-start-reverse" }, defs);
+    sv("path", { d: "M0,0 L6,3 L0,6 Z", fill: color }, mk);
+    svg.appendChild(defs);
+    var dense = passes.length > 60;
+    var g = sv("g", { stroke: color, "stroke-width": dense ? 0.3 : 0.45, "stroke-linecap": "round", opacity: dense ? 0.55 : 0.85 }, svg);
+    // passes recorded as ending on the goal line are mostly balls that went out of play
+    passes.filter(function (p) { return p.x2 < 99 && p.x < 99; }).forEach(function (p) {
+      sv("line", { x1: mx(p.x, p.flip), y1: my(p.y, p.flip), x2: mx(p.x2, p.flip), y2: my(p.y2, p.flip), "marker-end": "url(#" + id + ")" }, g);
+      sv("circle", { cx: mx(p.x, p.flip), cy: my(p.y, p.flip), r: 0.45, fill: color, stroke: "none" }, g);
+    });
+  }
+  // The goal from the shooter's side. Posts sit at about 44.6 and 55.4 across the pitch, the crossbar at about 38
+  // on the feed's height scale; the attacker's left (higher numbers) is on the left.
+  function goalMouth(box, shots, tip) {
+    var Y0 = 64, Y1 = 36, Z1 = 62, W = 112, H = 46;
+    function X(gy) { return (Y0 - gy) / (Y0 - Y1) * W; }
+    function Z(gz) { return H - Math.min(gz, Z1) / Z1 * H; }
+    var wrap = el("div", "hm-goal"); box.appendChild(wrap);
+    var svg = sv("svg", { viewBox: "-2 -2 " + (W + 4) + " " + (H + 4), role: "img", "aria-label": "Where shots crossed the goal line, seen from the shooter's side" }, wrap);
+    sv("line", { x1: -2, y1: H, x2: W + 2, y2: H, stroke: "currentColor", "stroke-width": 0.5, opacity: 0.5 }, svg);
+    sv("path", { d: "M" + X(44.6) + "," + H + " V" + Z(38) + " H" + X(55.4) + " V" + H, fill: "none", stroke: "currentColor", "stroke-width": 1.2 }, svg);
+    var g = sv("g", {}, svg), n = 0;
+    shots.forEach(function (s) {
+      if (s.gy == null || s.gz == null || s.gy > Y0 || s.gy < Y1) return;
+      n++;
+      var cx = X(s.gy), cy = Z(s.gz), m;
+      if (s.kind === "goal") m = sv("circle", { cx: cx, cy: cy, r: 2.2, fill: s.color, stroke: "var(--panel)", "stroke-width": 0.5 }, g);
+      else if (s.kind === "on") m = sv("circle", { cx: cx, cy: cy, r: 1.5, fill: s.color, stroke: "var(--panel)", "stroke-width": 0.4 }, g);
+      else m = sv("circle", { cx: cx, cy: cy, r: 1.4, fill: "var(--panel)", "fill-opacity": 0.6, stroke: s.color, "stroke-width": 0.5 }, g);
+      var hit = sv("circle", { cx: cx, cy: cy, r: 3, fill: "transparent" }, g);
+      if (tip) { hit.addEventListener("pointermove", function (e) { tip(e, s.label); }); hit.addEventListener("pointerleave", function () { tip(null); }); }
+    });
+    return n;
+  }
+
   function arrow(box, text) { var a = el("div", "hm-dir"); a.appendChild(el("span", null, text)); box.appendChild(a); }
   function legend(box, items) {
     var lg = el("div", "hm-legend");
@@ -172,6 +220,24 @@
       var count = function (id) { var s = shots.filter(function (x) { return (x.flip ? m.away.id : m.home.id) === id; }); return s.length + " shots, " + s.filter(function (x) { return x.kind === "goal" || x.kind === "on"; }).length + " on target"; };
       var cap = el("div", "hm-teams"); cap.appendChild(el("span", "hm-h", "← " + m.away.abbr + ": " + count(m.away.id))); cap.appendChild(el("span", "hm-a", m.home.abbr + ": " + count(m.home.id) + " →")); right.appendChild(cap);
       legend(right, [["goal", "Goal"], ["on", "Saved"], ["off", "Off target"], ["blocked", "Blocked"]]);
+      // progressive passes for the same team or player as the touches
+      var pcol = el("div", "hm-col"); grid.appendChild(pcol);
+      var pb = el("div", "hm-bar"); pb.appendChild(el("b", "hm-title", "Progressive passes · " + who)); pcol.appendChild(pb);
+      var passes = pts.filter(function (p) { return (p.type === "Pass" || p.type === "Cross") && p.x2 != null; });
+      var prog = passes.filter(function (p) { return progressive(p.x, p.y, p.x2, p.y2); });
+      var pp = pitch(pcol, "Progressive passes by " + who + ", attacking to the right");
+      paintPasses(pp.svg, prog.map(function (p) { return { x: p.x, y: p.y, x2: p.x2, y2: p.y2, flip: false }; }), color);
+      arrow(pcol, "Attacking →");
+      pcol.appendChild(el("p", "note hm-cap", prog.length + " progressive of " + passes.length + " passes attempted (ESPN doesn't mark completed passes)"));
+      // goal mouth for both teams
+      var gcol = el("div", "hm-col"); grid.appendChild(gcol);
+      var gb = el("div", "hm-bar"); gb.appendChild(el("b", "hm-title", "Goal mouth")); gcol.appendChild(gb);
+      var gshots = plays.filter(function (p) { return p.shot && p.shot !== "blocked" && (p.team === m.home.id || p.team === m.away.id); }).map(function (p) {
+        var home = p.team === m.home.id;
+        return { gy: p.gy, gz: p.gz, kind: p.shot, color: home ? "var(--home)" : "var(--away)", label: (p.min ? p.min + "  " : "") + (ctx.roster[p.ath] || "") + " (" + (home ? m.home.abbr : m.away.abbr) + ")\n" + { goal: "Goal", on: "Saved", off: "Off target" }[p.shot] };
+      });
+      var shown = goalMouth(gcol, gshots, ctx.tip);
+      gcol.appendChild(el("p", "note hm-cap", shown + " shots that reached the goal line, seen from the shooter's side. " + m.home.abbr + " in blue, " + m.away.abbr + " in orange."));
     }
   }
 
@@ -196,7 +262,23 @@
     var goals = shots.filter(function (s) { return s.kind === "goal"; }).length, on = shots.filter(function (s) { return s.kind === "on"; }).length;
     b.appendChild(el("p", "note hm-cap", shots.length + " shots · " + (goals + on) + " on target · " + goals + " goals"));
     legend(b, [["goal", "Goal", "var(--seq)"], ["on", "Saved", "var(--seq)"], ["off", "Off target", "var(--seq)"], ["blocked", "Blocked", "var(--seq)"]]);
+    if (entry.pl) {
+      var c = el("div", "hm-col"); grid.appendChild(c);
+      var cb = el("div", "hm-bar"); cb.appendChild(el("b", "hm-title", "Progressive passes this season")); c.appendChild(cb);
+      var p3 = pitch(c, "Season progressive passes, attacking to the right");
+      paintPasses(p3.svg, entry.pl.map(function (q) { return { x: q[0], y: q[1], x2: q[2], y2: q[3], flip: false }; }), "var(--seq)");
+      arrow(c, "Attacking →");
+      c.appendChild(el("p", "note hm-cap", (entry.pp || 0) + " progressive of " + (entry.p || 0) + " passes attempted" + (entry.pl.length < entry.pp ? " · newest " + entry.pl.length + " shown" : "")));
+    }
+    if ((entry.s || []).some(function (q) { return q[5] != null; })) {
+      var d = el("div", "hm-col"); grid.appendChild(d);
+      var db = el("div", "hm-bar"); db.appendChild(el("b", "hm-title", "Goal mouth this season")); d.appendChild(db);
+      var n = goalMouth(d, entry.s.filter(function (q) { return q[2] !== "blocked"; }).map(function (q) {
+        return { gy: q[5], gz: q[6], kind: q[2], color: "var(--seq)", label: (q[4] ? q[4] + "  " : "") + (q[3] || "") + "\n" + { goal: "Goal", on: "Saved", off: "Off target" }[q[2]] };
+      }), tip);
+      d.appendChild(el("p", "note hm-cap", n + " shots that reached the goal line, seen from the shooter's side"));
+    }
   }
 
-  root.Heat = { loadPlays: loadPlays, matchPanel: matchPanel, seasonPanel: seasonPanel, shotKind: shotKind };
+  root.Heat = { loadPlays: loadPlays, matchPanel: matchPanel, seasonPanel: seasonPanel, shotKind: shotKind, pitch: pitch, paintHeat: paintHeat, paintPasses: paintPasses };
 })(this);

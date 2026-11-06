@@ -160,6 +160,32 @@ def pick_openverse(man, tid, team_name, ov_id):
     print(f"  saved  {team_name:<26} {(r.get('title') or '')[:60]} ({site})")
 
 
+def pick_flickr(man, tid, team_name, photo_id):
+    """Use one Flickr photo: check its licence and capture date, download the large size, credit the photographer."""
+    from flickr_candidates import LICENCES, call
+    if not re.fullmatch(r"\d+", photo_id):
+        print(f"  bad Flickr id  {photo_id}"); return
+    info = call("flickr.photos.getInfo", photo_id=photo_id)["photo"]
+    lic = LICENCES.get(str(info.get("license")))
+    taken = (info.get("dates") or {}).get("taken", "")
+    if not lic:
+        print(f"  refused (licence id {info.get('license')})  {photo_id}"); return
+    if int(taken[:4] or 0) < SINCE:
+        print(f"  refused (taken {taken[:10] or 'on an unknown date'}, before {SINCE})  {photo_id}"); return
+    sizes = call("flickr.photos.getSizes", photo_id=photo_id)["sizes"]["size"]
+    best = next((z for z in reversed(sizes) if int(z.get("width") or 0) <= 1600 and z.get("media") == "photo"), sizes[-1])
+    for old in os.listdir(PHOTOS):
+        if os.path.splitext(old)[0] == tid:
+            os.remove(os.path.join(PHOTOS, old))
+    with open(os.path.join(PHOTOS, tid + ".jpg"), "wb") as f:
+        f.write(get(best["source"]))
+    owner = info.get("owner") or {}
+    who = (owner.get("realname") or owner.get("username") or "Unknown author")[:80]
+    man[tid] = {"file": tid + ".jpg", "team": team_name, "credit": f"{who}, {lic}, via Flickr",
+                "source": f"https://www.flickr.com/photos/{owner.get('nsid', '')}/{photo_id}"}
+    print(f"  saved  {team_name:<26} {((info.get('title') or {}).get('_content') or '')[:60]} (Flickr, {taken[:10]})")
+
+
 def pick(man, choices):
     """--pick id="File:Title" ...: use exactly these Commons files."""
     names = {t["id"]: t["name"] for t in teams()}
@@ -167,6 +193,9 @@ def pick(man, choices):
         tid, title = c.split("=", 1)
         if title.startswith("ov:"):
             pick_openverse(man, tid, names.get(tid, tid), title[3:])
+            continue
+        if title.startswith("fl:"):
+            pick_flickr(man, tid, names.get(tid, tid), title[3:])
             continue
         p = {"action": "query", "format": "json", "titles": title, "prop": "imageinfo", "iiprop": "url|extmetadata|size", "iiurlwidth": "1280"}
         page = next(iter(json.loads(get("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(p)))["query"]["pages"].values()))

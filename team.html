@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Team · Matchday Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css?v=13">
+<script>
+/* GitHub Pages lets browsers keep pages for 10 minutes. If the site has been updated since this copy, refresh it once. */
+(function (build) {
+  try {
+    fetch("version.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (v) {
+      var key = "wmh-reloaded-" + v.build;
+      if (v.build > build && !sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        fetch(location.href, { cache: "reload" }).then(function () { location.reload(); });
+      }
+    }).catch(function () {});
+  } catch (e) {}
+})(13);
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-title">
+      <a class="eyebrow back" id="back" href="./">← Matchday Hub</a>
+      <span class="eyebrow" id="tLeague">Team</span>
+    </div>
+  </header>
+
+  <section class="tp-hero" aria-labelledby="tName">
+    <div class="photo" id="tPhoto"></div>
+    <div class="pp-id">
+      <div class="pp-club" id="tCrest"></div>
+      <h1 id="tName">Loading…</h1>
+      <dl class="pp-facts" id="tFacts"></dl>
+      <div class="form" id="tForm"></div>
+      <div id="tCredit" class="ph-credit"></div>
+    </div>
+  </section>
+
+  <section class="card" id="tForecastCard" aria-labelledby="tfH" hidden>
+    <div class="sec-head"><h2 id="tfH">Season forecast</h2><span class="eyebrow" id="tfNote"></span></div>
+    <div class="pl-tiles pp-tiles" id="tForecast"></div>
+  </section>
+
+  <div class="pp-two">
+    <section class="card" aria-labelledby="rsH">
+      <div class="sec-head"><h2 id="rsH">Results</h2></div>
+      <div class="tbl-wrap" id="tResults"></div>
+    </section>
+    <section class="card" aria-labelledby="fxH2">
+      <div class="sec-head"><h2 id="fxH2">Fixtures</h2></div>
+      <div class="tbl-wrap" id="tFixtures"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="sqH">
+    <div class="sec-head"><h2 id="sqH">Squad</h2><span class="eyebrow">Click a player for her page</span></div>
+    <div class="tbl-wrap" id="tSquad"></div>
+  </section>
+
+  <section class="card" aria-labelledby="thH">
+    <div class="sec-head"><h2 id="thH">How they play</h2><span class="eyebrow">Every touch, shot and progressive pass this season, from ESPN play-by-play</span></div>
+    <div id="tHeat"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h2hH">
+    <div class="sec-head"><h2 id="h2hH">Head to head</h2><span class="eyebrow">League meetings, last five seasons</span></div>
+    <label class="intl-pick" for="h2hSel">Opponent <select id="h2hSel" class="pl-select"></select></label>
+    <div id="tH2H"></div>
+  </section>
+
+  <footer class="foot">
+    <p class="note">Results, fixtures and head-to-head from ESPN's public feed. Squad numbers from the player stats database, built from ESPN match sheets. Photos are freely licensed and credited.</p>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+<script src="model.js?v=13"></script>
+<script src="photos.js?v=13"></script>
+<script src="heat.js?v=13"></script>
+<script src="h2h.js?v=13"></script>
+<script src="team-page.js?v=13"></script>
+</body>
+</html>

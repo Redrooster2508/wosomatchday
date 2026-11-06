@@ -7,6 +7,14 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Team pages, head to head, passes, goal mouth, minutes (build 13)
+- **Team pages** with forecast, results and fixtures, squad, team maps and head to head
+- **Head to head** in the match centre and on team pages (last five seasons)
+- **Progressive pass maps** and **goal-mouth charts** in the match centre, on player pages and on team pages
+- **Minutes played** and **per-90** rates: player table columns, player tiles, per-90 percentiles, minutes in match logs
+- `heat.json` v3: passes, goal-line spots and minutes; corners and out-of-play passes don't count as progressive
+- Getty Images embed test page (`getty-test.html`, not linked) to check whether Getty's free embeds display
+
 ## 2026-11-06 · Recent team photos
 - 24 team photos from 2023–2026 picked by eye from 200 candidates (Commons and Openverse), with credits. 29 clubs now have a recent photo; the rest keep the illustration.
 

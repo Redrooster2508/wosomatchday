@@ -19,6 +19,10 @@
     { k: "G", l: "Goals", t: "Goals" }, { k: "A", l: "Assists", t: "Assists" },
     { k: "GA+", l: "G+A", t: "Goals plus assists", f: function (p) { return p.G + p.A; } },
     { k: "SHOT", l: "Shots", t: "Shots" }, { k: "SOG", l: "On target", t: "Shots on target" },
+    { k: "min", l: "Min", t: "Minutes played", f: function (p) { return p.min || 0; }, opt: "min" },
+    { k: "g90", l: "Goals/90", t: "Goals per 90 minutes (270+ minutes)", f: function (p) { return p.min >= 270 ? p.G / p.min * 90 : -1; }, dec: 2, opt: "min" },
+    { k: "ga90", l: "G+A/90", t: "Goals plus assists per 90 minutes (270+ minutes)", f: function (p) { return p.min >= 270 ? (p.G + p.A) / p.min * 90 : -1; }, dec: 2, opt: "min" },
+    { k: "pp", l: "Prog. passes", t: "Progressive passes attempted: ending at least 25% closer to goal, in the attacking half", f: function (p) { return p.pp || 0; }, opt: "min" },
     { k: "gpa", l: "Goals/app", t: "Goals per appearance", f: function (p) { return p.apps ? p.G / p.apps : 0; }, dec: 2 },
     { k: "SV", l: "Saves", t: "Saves" }, { k: "cs", l: "Clean sheets", t: "Clean sheets (goalkeepers who started)" },
     { k: "YC", l: "Yellow", t: "Yellow cards" }, { k: "RC", l: "Red", t: "Red cards" }
@@ -38,13 +42,19 @@
     if (ui.slug !== slug) { ui = { slug: slug, q: "", team: "", pos: "", sort: "G", dir: -1, all: false, open: null }; }
     box.textContent = "";
     box.appendChild(el("p", "note", "Loading player stats…"));
-    load(slug, "players.json", cache).then(function (d) { if (ui.slug === slug) draw(box, d, api); })
+    Promise.all([load(slug, "players.json", cache), fetch("data/" + slug + "/minutes.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })])
+      .then(function (res) { if (ui.slug !== slug) return; res[0].minutes = res[1]; draw(box, res[0], api); })
       .catch(function () { if (ui.slug === slug) { box.textContent = ""; box.appendChild(el("p", "note", "Player stats for this competition haven't been built yet.")); } });
   }
 
   function draw(box, d, api) {
     box.textContent = "";
-    var ps = d.players.map(function (p) { var t = d.teams[p.team] || {}; return Object.assign({ club: t.name || "", abbr: t.abbr || "", logo: t.logo || "", line: line(p.pos) }, p); });
+    var mins = d.minutes || null;
+    var ps = d.players.map(function (p) {
+      var t = d.teams[p.team] || {}, mm = mins && mins[p.id] || {};
+      return Object.assign({ club: t.name || "", abbr: t.abbr || "", logo: t.logo || "", line: line(p.pos), min: mm.m || 0, pp: mm.pp || 0 }, p);
+    });
+    var cols = COLS.filter(function (c) { return !c.opt || mins; });
     // controls
     var bar = el("div", "pl-controls");
     var q = el("input"); q.type = "search"; q.id = "plSearch"; q.placeholder = "Search players"; q.value = ui.q; q.setAttribute("aria-label", "Search players");
@@ -67,7 +77,7 @@
     hr.appendChild(el("th", "", "#"));
     hr.appendChild(el("th", "l", "Player"));
     hr.appendChild(el("th", "l", "Club"));
-    COLS.forEach(function (c) {
+    cols.forEach(function (c) {
       var th = el("th"), b = el("button", "pl-sort", c.l); b.type = "button"; b.title = c.t;
       if (ui.sort === c.k) { th.setAttribute("aria-sort", ui.dir < 0 ? "descending" : "ascending"); b.textContent = c.l + (ui.dir < 0 ? " ↓" : " ↑"); }
       b.addEventListener("click", function () { if (ui.sort === c.k) ui.dir = -ui.dir; else { ui.sort = c.k; ui.dir = -1; } draw(box, d, api); });
@@ -80,7 +90,7 @@
     box.appendChild(meta);
 
     function renderRows() {
-      var col = COLS.find(function (c) { return c.k === ui.sort; }) || COLS[2];
+      var col = cols.find(function (c) { return c.k === ui.sort; }) || cols[2];
       var needle = ui.q.trim().toLowerCase();
       var rows = ps.filter(function (p) {
         return (!ui.team || p.team === ui.team) && (!ui.pos || p.line === ui.pos) && (!needle || p.name.toLowerCase().indexOf(needle) >= 0 || p.club.toLowerCase().indexOf(needle) >= 0);
@@ -92,14 +102,14 @@
         tr.appendChild(el("td", "", String(i + 1)));
         var nm = el("td", "l pl-name"); nm.appendChild(el("span", null, p.name)); nm.appendChild(el("span", "pl-pos-tag", (p.line || (p.pos === "SUB" ? "" : p.pos)) + (p.no ? " · #" + p.no : ""))); tr.appendChild(nm);
         var cl = el("td", "l"), ci = el("span", "tc"); if (p.logo) { var im = new Image(); im.src = p.logo; im.alt = ""; im.loading = "lazy"; ci.appendChild(im); } ci.appendChild(el("span", null, p.abbr || p.club)); cl.appendChild(ci); tr.appendChild(cl);
-        COLS.forEach(function (c) { var v = val(p, c); tr.appendChild(el("td", ui.sort === c.k ? "pl-sorted" : "", c.dec ? v.toFixed(c.dec) : String(v))); });
+        cols.forEach(function (c) { var v = val(p, c); tr.appendChild(el("td", ui.sort === c.k ? "pl-sorted" : "", v < 0 ? "–" : c.dec ? v.toFixed(c.dec) : String(v))); });
         var href = "player.html?l=" + encodeURIComponent(ui.slug) + "&id=" + encodeURIComponent(p.id);
         nm.textContent = ""; var a = el("a", "pl-link", p.name); a.href = href; nm.appendChild(a); nm.appendChild(el("span", "pl-pos-tag", (p.line || (p.pos === "SUB" ? "" : p.pos)) + (p.no ? " · #" + p.no : "")));
         tr.addEventListener("click", function (e) { if (e.target.closest("a")) return; location.href = href; });
         tr.addEventListener("keydown", function (e) { if (e.key === "Enter") location.href = href; });
         body.appendChild(tr);
       });
-      if (!rows.length) { var tr = el("tr"), td = el("td", "l note", "No players match."); td.colSpan = 3 + COLS.length; tr.appendChild(td); body.appendChild(tr); }
+      if (!rows.length) { var tr = el("tr"), td = el("td", "l note", "No players match."); td.colSpan = 3 + cols.length; tr.appendChild(td); body.appendChild(tr); }
       more.hidden = rows.length <= 25;
       more.textContent = ui.all ? "Show top 25" : "Show all " + rows.length + " players";
       more.onclick = function () { ui.all = !ui.all; renderRows(); };

@@ -34,6 +34,12 @@ Built from ESPN's play-by-play ([[Data sources (ESPN)]]): about 1,500 events per
 
 The site says so on Liga F match centres and player pages.
 
+## Passes, goal mouth and minutes (heat.json v3)
+- **Progressive passes:** `Pass` or `Cross` ending at least 25% closer to the opponent's goal and in the attacking half. **Corners** (starting on the goal line) and passes **ending on the goal line** (mostly out of play) are excluded. That was added in v3, after a match-centre check showed 74 "progressive" passes for one side. ESPN doesn't mark completed passes, so these are attempts.
+- **Goal mouth:** `goalPositionY` (posts at about 44.6 and 55.4) and `goalPositionZ` (crossbar at about 38). Drawn from the shooter's side, so the attacker's left is on the left; very high shots are pinned to the top edge.
+- **Minutes:** starters (from `matches.json`) from 0'; `Substitution` plays carry participants typed `subbed-in` and `subbed-out` with the clock; red cards end a player's match. A match lasts 90 minutes (120 with extra time); stoppage time isn't counted, which is standard practice. Per-90 rates need 270+ minutes.
+- The builder rebuilds everything when the file version changes (v1 → v2 for these fields, v2 → v3 for the pass rule).
+
 ## Gotchas
 - **Firefox blank heatmap.** The heat layer was first drawn as canvas pixels. In a user's Firefox it stayed blank while the shot map showed, most likely because fingerprinting protection blanks canvas pixel data. Now drawn as SVG cells with a Gaussian blur, tested in Chrome, Firefox, and Firefox with protection on.
 - **"Goal Kick" starts with "Goal".** The first version counted every goal kick as a goal: Aston Villa showed 21 shots on target instead of 1. Now only `Goal` or `Goal - …` count.
