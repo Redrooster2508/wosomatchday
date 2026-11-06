@@ -20,41 +20,62 @@
     c.restore();
     c.fillStyle = gk ? "#222" : k.c2; c.beginPath(); c.moveTo(x + w / 2 - 9, y); c.lineTo(x + w / 2, y + 10); c.lineTo(x + w / 2 + 9, y); c.closePath(); c.fill();
   }
-  function head(c, r, x, y, rad) {
-    var skin = pick(r, SKIN), hair = pick(r, HAIR), style = Math.floor(r() * 4);
-    c.fillStyle = hair;
-    if (style === 1) { c.beginPath(); c.ellipse(x, y + rad * 0.6, rad * 1.15, rad * 1.5, 0, 0, Math.PI * 2); c.fill(); }
-    if (style === 2) { c.beginPath(); c.arc(x, y - rad * 1.05, rad * 0.55, 0, Math.PI * 2); c.fill(); }
-    if (style === 3) { c.beginPath(); c.ellipse(x + rad * 0.9, y + rad * 0.4, rad * 0.35, rad * 0.9, -0.3, 0, Math.PI * 2); c.fill(); }
-    c.fillStyle = skin; c.fillRect(x - rad * 0.35, y + rad * 0.7, rad * 0.7, rad * 0.7);
-    c.beginPath(); c.arc(x, y, rad, 0, Math.PI * 2); c.fill();
-    c.fillStyle = hair; c.beginPath(); c.arc(x, y - rad * 0.12, rad * 1.04, Math.PI * 1.02, Math.PI * 1.98); c.fill();
+  // A women's squad: ponytails, top knots, long hair, braids and curls, with hair ties in the second kit colour.
+  // Hair behind the head and shoulders is drawn before the body, the face and hairline after it.
+  var STYLES = ["ponytail", "long", "topknot", "braids", "curls", "ponytail", "bob"];
+  function look(r) { return { skin: pick(r, SKIN), hair: pick(r, HAIR), style: pick(r, STYLES), side: r() < 0.5 ? -1 : 1 }; }
+  function hairBack(c, h, x, y, rad) {
+    c.fillStyle = h.hair;
+    if (h.style === "long") { rr(c, x - rad * 1.2, y - rad * 0.4, rad * 2.4, rad * 3.1, rad); c.fill(); }
+    if (h.style === "bob") { rr(c, x - rad * 1.2, y - rad * 0.6, rad * 2.4, rad * 2.0, rad * 0.8); c.fill(); }
+    if (h.style === "curls") for (var i = 0; i < 9; i++) { var an = Math.PI * (0.85 + i * 0.165); c.beginPath(); c.arc(x + Math.cos(an) * rad * 1.05, y - rad * 0.05 + Math.sin(an) * rad * 1.05, rad * 0.5, 0, Math.PI * 2); c.fill(); }
+    if (h.style === "braids") for (var j = 0; j < 5; j++) { c.beginPath(); c.arc(x - rad * 0.95, y + rad * (0.4 + j * 0.42), rad * 0.24, 0, Math.PI * 2); c.arc(x + rad * 0.95, y + rad * (0.4 + j * 0.42), rad * 0.24, 0, Math.PI * 2); c.fill(); }
+  }
+  function head(c, h, k, x, y, rad) {
+    if (h.style === "ponytail") { c.fillStyle = h.hair; c.beginPath(); c.ellipse(x + h.side * rad * 1.05, y + rad * 0.95, rad * 0.38, rad * 1.25, -h.side * 0.3, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = h.skin; c.fillRect(x - rad * 0.32, y + rad * 0.7, rad * 0.64, rad * 0.7);
+    c.beginPath(); c.ellipse(x, y, rad * 0.88, rad, 0, 0, Math.PI * 2); c.fill();
+    // hairline: pulled back over the top and down the sides to the ears
+    c.fillStyle = h.hair; c.beginPath(); c.arc(x, y - rad * 0.08, rad * 0.98, Math.PI * 0.93, Math.PI * 2.07); c.fill();
+    if (h.style === "long" || h.style === "bob") {        // side locks framing the face
+      rr(c, x - rad * 1.0, y - rad * 0.3, rad * 0.36, rad * (h.style === "long" ? 2.6 : 1.3), rad * 0.18); c.fill();
+      rr(c, x + rad * 0.64, y - rad * 0.3, rad * 0.36, rad * (h.style === "long" ? 2.6 : 1.3), rad * 0.18); c.fill();
+    }
+    if (h.style === "topknot") { c.beginPath(); c.arc(x, y - rad * 1.12, rad * 0.5, 0, Math.PI * 2); c.fill(); c.fillStyle = k.c2; c.fillRect(x - rad * 0.32, y - rad * 0.78, rad * 0.64, rad * 0.16); }
+    if (h.style === "ponytail") { c.fillStyle = k.c2; c.beginPath(); c.arc(x + h.side * rad * 0.9, y - rad * 0.1, rad * 0.16, 0, Math.PI * 2); c.fill(); }
+    // face
+    c.fillStyle = "#24170F";
+    c.beginPath(); c.arc(x - rad * 0.32, y + rad * 0.12, rad * 0.1, 0, Math.PI * 2); c.arc(x + rad * 0.32, y + rad * 0.12, rad * 0.1, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = "rgba(60,20,20,.75)"; c.lineWidth = Math.max(1.4, rad * 0.09); c.lineCap = "round";
+    c.beginPath(); c.arc(x, y + rad * 0.36, rad * 0.24, Math.PI * 0.2, Math.PI * 0.8); c.stroke();
   }
   function standing(c, r, k, x, feet, gk) {
-    var top = feet - 196, skin = pick(r, SKIN);
+    var top = feet - 196, h = look(r), skin = h.skin;
     c.fillStyle = "rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(x, feet + 2, 34, 6, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = skin; rr(c, x - 34, top + 44, 12, 66, 6); c.fill(); rr(c, x + 22, top + 44, 12, 66, 6); c.fill();
     c.fillStyle = k.sh; rr(c, x - 27, top + 110, 54, 32, 6); c.fill();
     c.fillStyle = skin; c.fillRect(x - 20, top + 140, 14, 22); c.fillRect(x + 6, top + 140, 14, 22);
     c.fillStyle = k.so; rr(c, x - 21, top + 158, 16, 30, 4); c.fill(); rr(c, x + 5, top + 158, 16, 30, 4); c.fill();
     c.fillStyle = "#111"; rr(c, x - 23, top + 186, 20, 10, 4); c.fill(); rr(c, x + 3, top + 186, 20, 10, 4); c.fill();
-    shirt(c, k, x - 30, top + 38, 60, 78, gk);
+    hairBack(c, h, x, top + 20, 17);
+    shirt(c, k, x - 28, top + 38, 56, 78, gk);
     c.fillStyle = gk ? k.gk : k.c1; rr(c, x - 38, top + 40, 14, 24, 6); c.fill(); rr(c, x + 24, top + 40, 14, 24, 6); c.fill();
     if (gk) { c.fillStyle = "#EEE"; c.beginPath(); c.arc(x - 28, top + 110, 8, 0, Math.PI * 2); c.arc(x + 28, top + 110, 8, 0, Math.PI * 2); c.fill(); }
-    head(c, r, x, top + 20, 17);
+    head(c, h, k, x, top + 20, 17);
   }
   function crouching(c, r, k, x, feet, cap) {
-    var top = feet - 150, skin = pick(r, SKIN);
+    var top = feet - 150, h = look(r), skin = h.skin;
     c.fillStyle = "rgba(0,0,0,.28)"; c.beginPath(); c.ellipse(x, feet + 2, 44, 7, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = k.so; rr(c, x - 36, feet - 46, 16, 40, 5); c.fill(); rr(c, x + 20, feet - 46, 16, 40, 5); c.fill();
     c.fillStyle = "#111"; rr(c, x - 40, feet - 10, 22, 11, 4); c.fill(); rr(c, x + 18, feet - 10, 22, 11, 4); c.fill();
     c.fillStyle = skin; c.beginPath(); c.arc(x - 28, feet - 52, 12, 0, Math.PI * 2); c.arc(x + 28, feet - 52, 12, 0, Math.PI * 2); c.fill();
     c.fillStyle = k.sh; rr(c, x - 36, feet - 72, 72, 26, 8); c.fill();
-    shirt(c, k, x - 31, top + 38, 62, 66, false);
+    hairBack(c, h, x, top + 20, 18);
+    shirt(c, k, x - 29, top + 38, 58, 66, false);
     c.fillStyle = k.c1; rr(c, x - 40, top + 40, 14, 22, 6); c.fill(); rr(c, x + 26, top + 40, 14, 22, 6); c.fill();
     c.fillStyle = skin; rr(c, x - 38, top + 58, 11, 40, 5); c.fill(); rr(c, x + 27, top + 58, 11, 40, 5); c.fill();
     if (cap) { c.fillStyle = "#F2C230"; c.fillRect(x - 40, top + 50, 14, 6); }
-    head(c, r, x, top + 20, 18);
+    head(c, h, k, x, top + 20, 18);
   }
 
   // team: {id, color, alternateColor}

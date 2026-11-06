@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Illustrated squads drawn as women (build 17)
+- The stand-in team picture (for clubs with no free recent photo) now shows women: ponytails, top knots, long hair, braids, curls and bobs, hair ties in the second kit colour, simple faces
+- Fix: a figure's arms and legs now match her face's skin tone
+
 ## 2026-11-06 · Player photos must show the player (build 16)
 - Commons "depicts" tags are checked: a file tagged as showing something or someone else is skipped, a file tagged as her gets a bonus
 - Portrait shape and tags now outweigh a year or two of recency (Bonmatí had a 2026 photo of a sign with her name on it; she now gets her 2024 portrait)

@@ -24,7 +24,7 @@ The searches gave 200 candidates from 2023 on, for 37 of 59 clubs. All were revi
 Shown in this order:
 1. A viewer's own upload, kept only in their browser
 2. A shared photo listed in `photos/manifest.json`, with `{file, team, credit, source}`
-3. An illustrated squad line-up drawn on a canvas in club colours
+3. An illustrated squad line-up drawn on a canvas in club colours: women with varied hairstyles (ponytails, top knots, long hair, braids, curls, bobs) and skin tones
 
 ### Sources and tools
 - `tools/photo_candidates.py`: Wikimedia Commons search and club categories, scored for team or line-up shots, recent years and the women's side
