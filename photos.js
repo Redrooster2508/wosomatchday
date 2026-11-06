@@ -83,11 +83,28 @@
     return cv.toDataURL("image/jpeg", 0.86);
   }
 
-  var cache = {}, uploads = {};
+  var cache = {}, uploads = {}, shared = {}, credits = {};
   function key(id) { return "wmh-photo-" + id; }
   function stored(id) { if (uploads[id]) return uploads[id]; try { return localStorage.getItem(key(id)); } catch (e) { return null; } }
   var Photos = {
-    get: function (team) { var s = stored(team.id); if (s) return s; if (!cache[team.id]) cache[team.id] = drawSquad(team); return cache[team.id]; },
+    // photos/manifest.json maps ESPN team id to {file, credit, source} in photos/; those photos show for every visitor.
+    loadShared: function () {
+      return fetch("photos/manifest.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (m) {
+          Object.keys(m || {}).forEach(function (id) {
+            var e = typeof m[id] === "string" ? { file: m[id] } : m[id];
+            if (!e || typeof e.file !== "string" || /^[a-z]+:|\.\.|\//i.test(e.file)) return;
+            shared[id] = "photos/" + e.file;
+            if (e.credit) credits[id] = { text: String(e.credit), source: /^https:\/\/commons\.wikimedia\.org\//.test(e.source || "") ? e.source : "" };
+          });
+        })
+        .catch(function () {});
+    },
+    // Credit for the shared photo, when that is the one showing.
+    credit: function (id) { return stored(id) ? null : credits[id] || null; },
+    // Order: this browser's upload, then the site's shared photo, then the illustration.
+    get: function (team) { var s = stored(team.id) || shared[team.id]; if (s) return s; if (!cache[team.id]) cache[team.id] = drawSquad(team); return cache[team.id]; },
+    isPhoto: function (id) { return !!(stored(id) || shared[id]); },
     hasUpload: function (id) { return !!stored(id); },
     clear: function (id) { delete uploads[id]; try { localStorage.removeItem(key(id)); } catch (e) {} },
     // Downscale to at most 960px and keep as JPEG; falls back to this visit only if storage is full or blocked.

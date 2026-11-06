@@ -4,7 +4,13 @@
   var LEAGUES = {
     wsl: { slug: "eng.w.1", name: "Women's Super League" },
     ligaf: { slug: "esp.w.1", name: "Liga F" },
-    nwsl: { slug: "usa.nwsl", name: "NWSL" }
+    nwsl: { slug: "usa.nwsl", name: "NWSL", fixedBracket: true,
+      projection: [{ label: "Playoff places", from: 1, to: 8, note: "The top eight make the playoffs: 1 v 8, 2 v 7, 3 v 6, 4 v 5." }, { label: "Outside the playoffs", from: 9, to: 99, out: true }] },
+    ucl: { slug: "uefa.wchampions", name: "Women's Champions League",
+      projection: [
+        { label: "Straight to quarter-finals", from: 1, to: 4, note: "The top four skip the knockout play-offs." },
+        { label: "Knockout play-offs", from: 5, to: 12, note: "5th–8th are seeded against 9th–12th; opponents are decided by the draw." },
+        { label: "Eliminated", from: 13, to: 99, out: true }] }
   };
   var SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/";
   var CORE = "https://site.api.espn.com/apis/v2/sports/soccer/";
@@ -215,15 +221,22 @@
   function renderSide(node, m, side) {
     var t = m[side], row = tableRow(t.id); node.textContent = "";
     var ph = el("div", "photo"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(t);
-    im.alt = Photos.hasUpload(t.id) ? t.name + " team photo" : "Illustrated squad line-up in " + t.name + " colours";
+    im.alt = Photos.isPhoto(t.id) ? t.name + " team photo" : "Illustrated squad line-up in " + t.name + " colours";
     ph.appendChild(im);
     if (t.logo) { var cr = new Image(); cr.className = "crest"; cr.src = t.logo; cr.alt = t.name + " crest"; ph.appendChild(cr); }
     ph.appendChild(el("span", "tag", m.neutral ? (side === "home" ? "Team A" : "Team B") : (side === "home" ? "Home" : "Away")));
     node.appendChild(ph);
+    var cr = Photos.credit(t.id);
+    if (cr) {
+      var cap = el("div", "ph-credit", "Photo: ");
+      if (cr.source) { var a = el("a", null, cr.text); a.href = cr.source; a.target = "_blank"; a.rel = "noopener"; cap.appendChild(a); }
+      else cap.appendChild(document.createTextNode(cr.text));
+      node.appendChild(cap);
+    }
     var act = el("div", "ph-actions"), up = el("button", "btn", Photos.hasUpload(t.id) ? "Replace photo" : "Upload team photo"); up.type = "button";
     up.addEventListener("click", function () { uploadFor = t.id; $("fileIn").value = ""; $("fileIn").click(); });
     act.appendChild(up);
-    if (Photos.hasUpload(t.id)) { var rs = el("button", "btn", "Use illustration"); rs.type = "button"; rs.addEventListener("click", function () { Photos.clear(t.id); renderMatch(); }); act.appendChild(rs); }
+    if (Photos.hasUpload(t.id)) { var rs = el("button", "btn", "Remove my photo"); rs.type = "button"; rs.addEventListener("click", function () { Photos.clear(t.id); renderMatch(); }); act.appendChild(rs); }
     node.appendChild(act);
     node.appendChild(el("div", "tname", t.name));
     var meta = row ? ord(row.rank) + " · " + row.pts + " pts · " + row.w + "W " + row.d + "D " + row.l + "L · GD " + (row.gd > 0 ? "+" : "") + row.gd : (t.record || "");
@@ -381,7 +394,7 @@
     if (!items.length) {
       m.details.forEach(function (d) { items.push({ _d: d }); });
     }
-    if (!items.length) { box.appendChild(el("li", "note", m.state === "pre" ? "Goals, cards and substitutions will appear here." : "No events yet.")); return; }
+    if (!items.length) { box.appendChild(el("li", "note empty-row", m.state === "pre" ? "Goals, cards and substitutions will appear here." : "No events yet.")); return; }
     items.slice().reverse().forEach(function (e) {
       var li = el("li"), kind = "other", text, min, team = "";
       if (e._d) {
@@ -479,16 +492,22 @@
       if (lgInfo && lgInfo.calendarType === "day" && Array.isArray(lgInfo.calendar) && typeof lgInfo.calendar[0] === "string") {
         state.calendar = lgInfo.calendar.map(function (c) { return c.slice(0, 10); });
       }
+      if (lgInfo && lgInfo.calendarType === "list" && lgInfo.calendar && lgInfo.calendar[0] && lgInfo.calendar[0].entries) {
+        state.phases = lgInfo.calendar[0].entries.map(function (e) { return { label: e.label, start: e.startDate, end: e.endDate }; });
+      }
       state.day = d.day && d.day.date ? d.day.date
         : state.date ? state.date.slice(0, 4) + "-" + state.date.slice(4, 6) + "-" + state.date.slice(6, 8)
         : (state.matches[0] ? state.matches[0].date.slice(0, 10) : ymd(new Date()).replace(/(\d{4})(\d\d)(\d\d)/, "$1-$2-$3"));
       if (state.matches.some(function (m) { return wasLive[m.id] === "in" && m.state === "post"; })) loadTable(true);
+      if (state.pendingSel && state.matches.some(function (m) { return m.id === state.pendingSel; })) state.sel = state.pendingSel;
+      state.pendingSel = null;
+      if (state.matches.some(function (m) { return wasLive[m.id] === "in" && m.state === "post"; })) state.bracketAt = 0;
       if (!state.matches.some(function (m) { return m.id === state.sel; })) {
         state.sel = state.matches.length ? (state.matches.find(function (m) { return m.state === "in"; }) || state.matches[0]).id : null;
       }
       var sel = state.matches.find(function (m) { return m.id === state.sel; });
       var needSummary = sel && (state.summaryFor !== sel.id || sel.state === "in" || wasLive[sel.id] !== sel.state);
-      return (needSummary ? loadSummary(sel.id) : Promise.resolve()).then(function () {
+      return Promise.all([needSummary ? loadSummary(sel.id) : Promise.resolve(), loadBracket()]).then(function () {
         state.loading = false;
         renderAll();
         var live = anyLive();
@@ -504,7 +523,80 @@
     $("seasonLabel").textContent = (state.tableSeason || LEAGUES[state.league].name);
     $("dateLabel").textContent = state.day ? fmtDay.format(parseDay(state.day)) : "—";
     document.querySelectorAll(".tab").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.league === state.league)); });
-    renderFixtures(); renderMatch(); renderTable();
+    renderFixtures(); renderMatch(); renderTable(); renderBracket();
+  }
+
+  /* ---------- bracket ---------- */
+  var KNOCKOUT = /playoff|final|knockout|round of/i, NOT_KNOCKOUT = /regular season|league phase/i;
+  function utcDay(d) { return d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, "0") + String(d.getUTCDate()).padStart(2, "0"); }
+  // Matches in each knockout phase. Short phases are read day by day; long ones from the whole year's list.
+  function loadBracket() {
+    var cfg = LEAGUES[state.league], league = state.league;
+    var phases = (state.phases || []).filter(function (p) { return KNOCKOUT.test(p.label) && !NOT_KNOCKOUT.test(p.label); });
+    if (!phases.length) { state.bracket = null; return Promise.resolve(); }
+    if (state.bracketLeague === league && Date.now() - state.bracketAt < (anyLive() ? LIVE_MS * 2 : TABLE_MS)) return Promise.resolve();
+    var horizon = Date.now() + 45 * 864e5, dayUrls = {}, years = {};
+    phases.forEach(function (p) {
+      var s = new Date(p.start), e = new Date(new Date(p.end) - 8 * 3600e3);
+      if (s > horizon) return;
+      var days = Math.round((e - s) / 864e5) + 1;
+      if (days <= 10) for (var d = new Date(s); d <= e; d = new Date(+d + 864e5)) dayUrls[utcDay(d)] = 1;
+      else { years[s.getUTCFullYear()] = 1; years[e.getUTCFullYear()] = 1; }
+    });
+    var reqs = Object.keys(dayUrls).map(function (d) { return SITE + cfg.slug + "/scoreboard?dates=" + d; })
+      .concat(Object.keys(years).filter(function (y) { return +y <= new Date(horizon).getUTCFullYear(); }).map(function (y) { return SITE + cfg.slug + "/scoreboard?dates=" + y + "&limit=400"; }));
+    return Promise.all(reqs.map(function (u) { return getJSON(u).catch(function () { return { events: [] }; }); })).then(function (res) {
+      if (league !== state.league) return;
+      var seen = {}, all = [];
+      res.forEach(function (r) { (r.events || []).forEach(function (ev) { if (!seen[ev.id]) { seen[ev.id] = 1; all.push(parseMatch(ev)); } }); });
+      state.bracket = phases.map(function (p) {
+        var s = new Date(p.start), e = new Date(p.end);
+        return { label: p.label, start: p.start, matches: all.filter(function (m) { var t = new Date(m.date); return t >= s && t < e; }) };
+      });
+      state.bracketLeague = league; state.bracketAt = Date.now();
+    });
+  }
+  function bracketApi() {
+    var cfg = LEAGUES[state.league];
+    return {
+      fixedBracket: !!cfg.fixedBracket,
+      seed: function (id) { var r = tableRow(id); return r ? r.rank : null; },
+      team: function (id) {
+        var r = tableRow(id); if (r) return r;
+        var found = null; (state.bracket || []).forEach(function (p) { p.matches.forEach(function (m) { if (m.home.id === id) found = m.home; if (m.away.id === id) found = m.away; }); });
+        return found;
+      },
+      fmtTime: function (d) { return fmtTime.format(new Date(d)); },
+      matchOutcome: function (h, a, neutral) {
+        var m = null; (state.bracket || []).forEach(function (p) { p.matches.forEach(function (x) { if (x.home.id === h && x.away.id === a && x.state === "pre") m = x; }); });
+        if (m) { var b = baseRates(m); return Model.outcome(b.lh, b.la, 0, 0); }
+        var f = Model.formLambdas(state.table, h, a, neutral);
+        return f ? Model.outcome(f.lh, f.la, 0, 0) : null;
+      },
+      openMatch: function (m) {
+        if (state.matches.some(function (x) { return x.id === m.id; })) { select(m.id, true); return; }
+        state.date = utcDay(new Date(new Date(m.date) - 5 * 3600e3)); state.pendingSel = m.id;
+        refresh(true).then(function () { $("matchup").scrollIntoView({ block: "start" }); });
+      }
+    };
+  }
+  function renderBracket() {
+    var card = $("bracketCard"), box = $("bracket"), cfg = LEAGUES[state.league];
+    box.textContent = "";
+    var phases = state.bracket;
+    if (!phases || (!phases.some(function (p) { return p.matches.length; }) && !cfg.projection)) { card.hidden = true; return; }
+    card.hidden = false;
+    // live scores from the scoreboard win over the bracket's copy
+    var live = {}; state.matches.forEach(function (m) { live[m.id] = m; });
+    phases = phases.map(function (p) { return { label: p.label, matches: p.matches.map(function (m) { return live[m.id] || m; }) }; });
+    if (phases.some(function (p) { return p.matches.length; })) {
+      $("bkNote").textContent = "Click a tie to open it";
+      Bracket.renderKnockout(box, phases, bracketApi());
+    } else {
+      var first = state.phases && state.phases.find(function (p) { return KNOCKOUT.test(p.label) && !NOT_KNOCKOUT.test(p.label); });
+      $("bkNote").textContent = "Projected from the current table" + (first ? " · knockouts start " + fmtDay.format(new Date(first.start)) : "");
+      if (state.table.length) Bracket.renderProjection(box, state.table, cfg.projection);
+    }
   }
   function select(id, scroll) {
     state.sel = id; renderFixtures(); renderMatch(); renderTable();
@@ -514,7 +606,7 @@
   }
   function setLeague(lg) {
     if (!LEAGUES[lg]) lg = "wsl";
-    state.league = lg; state.date = null; state.calendar = null; state.matches = []; state.table = []; state.tableAt = 0; state.sel = null; state.summary = null; state.summaryFor = null;
+    state.league = lg; state.date = null; state.calendar = null; state.phases = null; state.bracket = null; state.bracketAt = 0; state.matches = []; state.table = []; state.tableAt = 0; state.sel = null; state.summary = null; state.summaryFor = null;
     store("wmh-league", lg);
     if (location.hash !== "#" + lg) history.replaceState(null, "", "#" + lg);
     refresh(true);
@@ -527,12 +619,23 @@
       target = n > 0 ? c.find(function (x) { return x > cur; }) : c.slice().reverse().find(function (x) { return x < cur; });
       if (!target) return;
       state.date = target.replace(/-/g, "");
-    } else {
-      var base = cur ? parseDay(cur) : new Date();
-      base.setDate(base.getDate() + n);
-      state.date = ymd(base);
+      state.sel = null; refresh(true);
+      return;
     }
-    state.sel = null; refresh(true);
+    // No fixture calendar (NWSL, Champions League): look ahead a week at a time, up to six weeks, for the next day with matches.
+    var start = cur ? parseDay(cur) : new Date(), lg = state.league;
+    setStatus("Looking for the " + (n > 0 ? "next" : "previous") + " matchday…");
+    (function batch(k) {
+      if (k >= 6) { setStatus("No matches in the six weeks " + (n > 0 ? "after" : "before") + " this day."); return; }
+      var days = [];
+      for (var i = 1; i <= 7; i++) { var d = new Date(start); d.setDate(d.getDate() + n * (k * 7 + i)); days.push(ymd(d)); }
+      Promise.all(days.map(function (d) { return getJSON(SITE + LEAGUES[lg].slug + "/scoreboard?dates=" + d).catch(function () { return {}; }); })).then(function (res) {
+        if (lg !== state.league) return;
+        var hit = res.findIndex(function (r) { return r.events && r.events.length; });
+        if (hit < 0) return batch(k + 1);
+        state.date = days[hit]; state.sel = null; refresh(true);
+      });
+    })(0);
   }
 
   /* ---------- events ---------- */
@@ -553,4 +656,5 @@
   var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { var m = state.matches.find(function (x) { return x.id === state.sel; }); if (m) renderFlow(m, probs(m)); }, 150); });
 
   setLeague(LEAGUES[location.hash.slice(1)] ? location.hash.slice(1) : (store("wmh-league") || "wsl"));
+  Photos.loadShared().then(function () { renderFixtures(); renderMatch(); });
 })();

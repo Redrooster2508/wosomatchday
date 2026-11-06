@@ -1,6 +1,6 @@
 # Women's Matchday Hub
 
-Live scores, match statistics and win probabilities for the WSL, Liga F and NWSL.
+Live scores, match statistics and win probabilities for the WSL, Liga F, NWSL and Women's Champions League.
 
 A static site with no build step and no server. The browser reads ESPN's public soccer feed directly, every 30 seconds while a match is live.
 
@@ -16,6 +16,9 @@ A static site with no build step and no server. The browser reads ESPN's public 
 - Win probability by minute, replayed from the goal and red-card timeline
 - Match stats (possession, shots, passes, saves, cards and more) and the event timeline
 - League table with qualification and relegation zones
+- Bracket for knockout rounds:
+  - NWSL playoffs, with each team's title chances worked out through the bracket
+  - Champions League knockouts, with a projection from the league-phase table until they start
 
 ## How the probabilities work
 
@@ -32,12 +35,36 @@ Any static file server works:
 
 ```sh
 python3 -m http.server 8000
-# open http://localhost:8000/#wsl  (or #ligaf, #nwsl)
+# open http://localhost:8000/#wsl  (or #ligaf, #nwsl, #ucl)
 ```
 
 ## Publish on GitHub Pages
 
 Push this folder to a GitHub repository, then go to **Settings → Pages → Deploy from a branch → `main` / root**. The site appears at `https://<user>.github.io/<repo>/`.
+
+## Team photos
+
+The match centre shows the first of these that exists:
+
+1. A photo the viewer uploaded. This is saved only in their own browser.
+2. A shared photo listed in `photos/manifest.json`. Every visitor sees these.
+3. An illustrated squad line-up in the club's colours.
+
+`tools/fetch_photos.py` fills `photos/` from Wikimedia Commons. It only takes freely licensed images (CC BY, CC BY-SA, CC0 or public domain), and records each photographer and licence so the site can credit them under the photo. Commands:
+
+```sh
+python3 tools/fetch_photos.py               # teams without a photo yet
+python3 tools/fetch_photos.py --force 19970 # search again for one team (ESPN team id)
+python3 tools/fetch_photos.py --skip 19970  # keep the illustration for this team
+```
+
+To add your own photo, put the file in `photos/` and add an entry to `manifest.json`:
+
+```json
+"19970": {"file": "19970.jpg", "credit": "Photographer, licence", "source": ""}
+```
+
+Only add photos you have the right to publish.
 
 ## Data
 

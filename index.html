@@ -20,6 +20,7 @@
       <button type="button" class="tab" data-league="wsl">WSL</button>
       <button type="button" class="tab" data-league="ligaf">Liga F</button>
       <button type="button" class="tab" data-league="nwsl">NWSL</button>
+      <button type="button" class="tab" data-league="ucl">Champions League</button>
     </nav>
   </header>
 
@@ -83,6 +84,11 @@
     </div>
   </section>
 
+  <section class="card" id="bracketCard" aria-labelledby="bkH" hidden>
+    <div class="sec-head"><h2 id="bkH">Bracket</h2><span class="eyebrow" id="bkNote"></span></div>
+    <div id="bracket"></div>
+  </section>
+
   <section class="card" aria-labelledby="tblH">
     <div class="sec-head"><h2 id="tblH">League table</h2><span class="eyebrow" id="tblNote"></span></div>
     <div class="tbl-wrap"><table id="table"></table></div>
@@ -93,13 +99,14 @@
     <h3>How the probabilities work</h3>
     <p class="note">When bookmaker odds exist, the margin is removed and the implied home and away win chances are fitted to a pair of expected-goal rates. When odds are missing, the rates come from each team's goals scored and conceded per game this season, against the league average, with home advantage. Scorelines follow a Poisson model with the Dixon–Coles low-score correction (ρ = −0.08). During a match, only the time left is simulated, on top of the current score, and a red card cuts that team's scoring rate by a quarter.</p>
     <p class="note">"Draw" means level after 90 minutes; in a knockout match, such as the NWSL playoffs, the tie then goes to extra time or penalties.</p>
-    <p class="note">Data: ESPN's public scores feed, refreshed every 30 seconds while a match is live. Odds are shown for analysis only. Uploaded team photos stay in your browser.</p>
+    <p class="note">Data: ESPN's public scores feed, refreshed every 30 seconds while a match is live. Odds are shown for analysis only. Team photos are freely licensed images from Wikimedia Commons, credited under each photo; a photo you upload yourself stays in your browser.</p>
   </footer>
 </div>
 <div id="tip" hidden></div>
 <input type="file" id="fileIn" accept="image/*" hidden>
 <script src="model.js"></script>
 <script src="photos.js"></script>
+<script src="bracket.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

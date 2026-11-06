@@ -90,6 +90,8 @@ button,select,input{font:inherit;color:inherit}
 .photo .crest{position:absolute;right:8px;bottom:8px;width:44px;height:44px;object-fit:contain;background:rgba(255,255,255,.92);border-radius:50%;padding:5px}
 .photo .tag{position:absolute;left:8px;top:8px;font-family:var(--f-data);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:3px;color:#fff}
 .side.home .tag{background:var(--home)} .side.away .tag{background:var(--away)}
+.ph-credit{font-size:11px;color:var(--muted);margin-top:-4px;overflow-wrap:anywhere}
+.ph-credit a{color:inherit}
 .ph-actions{display:flex;gap:8px;flex-wrap:wrap}
 .tname{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,3.2vw,38px);text-transform:uppercase;line-height:.95;overflow-wrap:anywhere}
 .tmeta{color:var(--muted);font-size:13px}
@@ -143,6 +145,7 @@ button,select,input{font:inherit;color:inherit}
 .st-bar i.a{background:var(--away);border-radius:0 4px 4px 0}
 .timeline{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .timeline li{display:grid;grid-template-columns:52px 22px minmax(0,1fr);gap:8px;align-items:baseline;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.timeline li.empty-row{display:block;border-bottom:0;padding:0;font-size:14px}
 .timeline .min{font-family:var(--f-data);color:var(--muted);text-align:right}
 .timeline .ic{width:14px;height:14px;border-radius:2px;display:inline-block;align-self:center}
 .timeline .ic.goal{background:var(--ink);border-radius:50%}
@@ -169,6 +172,39 @@ td.pts{font-weight:700}
 .zones{font-size:12px;color:var(--muted);margin-top:10px;display:flex;gap:6px 16px;flex-wrap:wrap}
 .zones span{display:inline-flex;align-items:center;gap:6px}
 .zones i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* bracket */
+.bk-scroll{overflow-x:auto;padding-bottom:4px}
+.bk-grid{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(220px,1fr));gap:16px;min-width:min-content}
+.bk-col{display:grid;grid-template-rows:auto 1fr;gap:8px;min-width:0}
+.bk-round{padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.bk-stack{display:flex;flex-direction:column;justify-content:space-around;gap:10px}
+.bk-tie{all:unset;cursor:pointer;display:grid;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.bk-tie:hover{border-color:var(--muted)}
+.bk-tie:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.bk-tie.live{border-color:var(--live)}
+.bk-tie.ph{cursor:default;border-style:dashed;color:var(--muted);font-size:13px}
+.bk-team{display:grid;grid-template-columns:20px 22px minmax(0,1fr) auto;gap:6px;align-items:center;font-size:14px;min-height:26px}
+.bk-tie.ph .bk-team{display:block}
+.bk-team img{width:20px;height:20px;object-fit:contain}
+.bk-team.out{color:var(--muted)}
+.bk-team.out img{opacity:.5}
+.bk-team.won .bk-name{font-weight:700}
+.bk-seed{font-family:var(--f-data);font-size:11px;color:var(--muted);text-align:right}
+.bk-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bk-score{font-family:var(--f-display);font-weight:800;font-size:18px}
+.bk-meta{font-family:var(--f-data);font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:4px;margin-top:2px}
+.bk-tie.live .bk-meta{color:var(--live)}
+.bk-proj{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.bk-list{display:grid;gap:4px;align-content:start}
+.bk-list .bk-team{border-bottom:1px solid var(--line);padding-bottom:4px}
+.bk-list .bk-score{font-family:var(--f-data);font-size:12px;font-weight:400;color:var(--muted)}
+.bk-odds{margin-top:18px;display:grid;gap:6px;max-width:560px}
+.bk-odds h3{margin-bottom:4px}
+.bk-odd{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 48px;gap:10px;align-items:center;font-size:14px}
+.bk-odd b{font-family:var(--f-data);font-weight:500;text-align:right}
+.bk-bar{height:10px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.bk-bar i{display:block;height:100%;background:var(--seq);border-radius:0 4px 4px 0}
 
 .chart svg{display:block;width:100%;height:auto}
 .chart text{fill:var(--muted);font-family:var(--f-data);font-size:11px}
