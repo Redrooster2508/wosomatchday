@@ -9,6 +9,7 @@ tags: [todo]
 - [x] Recent team photos: 29 clubs have photos from 2023 on. 30 still use the illustration because no free recent photo exists (Arsenal, Man City, Lyon, PSG, most of Liga F...). See [[Photos and licensing]].
 - [ ] Some kept photos are action shots or single players rather than squad photos.
 - [ ] Play-by-play goal counts can differ from the match sheet (Russo, Champions League: 4 vs 3). See [[Heatmaps]].
+- [ ] Career history depends on Wikidata: some players have no item or incomplete spells, and appearance counts lag. Edits on Wikidata show up on the site straight away.
 - [ ] NWSL whole-year scoreboard is about 2.5 MB; the builder and bracket avoid it where they can.
 - [ ] The ESPN feed is unofficial; if it changes shape, the site and builder need updating. See [[Data sources (ESPN)]].
 

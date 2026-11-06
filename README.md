@@ -20,7 +20,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 | League table | Standings with qualification and relegation zones, goals scored and conceded per game |
 | Player stats | Season table for every player: search, club and position filters, sortable columns |
 | Player stats | (also) minutes, goals per 90, goals + assists per 90, progressive passes |
-| Player pages | `player.html?l=<league>&id=<ESPN player id>`: portrait, profile, season numbers with minutes and per-90 rates, league percentiles per 90, a per-match chart, season heatmap, shot map, progressive pass map and goal mouth, and the match log with minutes |
+| Player pages | `player.html?l=<league>&id=<ESPN player id>`: portrait, profile (with birthplace), career history (clubs and national teams from Wikidata), season numbers with minutes and per-90 rates, league percentiles per 90, a per-match chart, season heatmap, shot map, progressive pass map and goal mouth, and the match log with minutes |
 | Team pages | `team.html?l=<league>&id=<ESPN team id>`: photo, record and form, season forecast, results and fixtures, squad with minutes and per-90, team heatmap, shots, passes and goal mouth, head to head against any opponent |
 
 ## Files
@@ -94,6 +94,8 @@ python3 tools/fetch_photos.py --skip 19970                      # keep the illus
 ```
 
 **Player portraits.** A player page looks the player up on Wikidata. If she has a freely licensed portrait on Wikimedia Commons, the page shows it; otherwise it shows her initials in club colours. ESPN has no headshots for women players.
+
+**Career history.** The same Wikidata item (matched on ESPN's date of birth, so a namesake isn't used) gives her birthplace and every team she has been registered with, through Wikidata's public query service (CC0 data). Appearances and goals are shown where Wikidata records them, with the date they were counted to. The data is community-edited, so it can be incomplete or behind.
 
 **Recency.** Team photos must have been taken in **2023 or later**, going by the camera's recorded date or, failing that, a year in the title. Older photos show old squads and kits. The shortlist tools and `--pick` enforce this.
 

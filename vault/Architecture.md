@@ -22,7 +22,7 @@ Polling in `app.js`:
 | `model.js` | [[Probability model]]: pure functions |
 | `bracket.js` | [[Bracket]] and title chances |
 | `players.js` | Player table and match-centre line-ups |
-| `player.html`, `player-page.js` | Player pages |
+| `player.html`, `player-page.js` | Player pages: ESPN profile, Wikidata portrait, birthplace and career, season stats |
 | `photos.js` | Team photos ([[Photos and licensing]]) |
 | `data/<league>/` | [[Player stats database]] |
 | `tools/*.py` | Database builder and photo tools |

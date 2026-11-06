@@ -7,6 +7,13 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Player career history and birthplace (build 15)
+- Player pages get a **Career** section: every club and national team from Wikidata, with years, country, and appearances and goals where recorded (with the date they were counted to)
+- "Born in" fact (birthplace and country) and a Wikipedia link
+- Wikidata lookup now matches ESPN's date of birth, so a namesake isn't picked; it also fixes Khadija Shaw, who wasn't found before
+- Fix: ESPN dates of birth are day-first (8/2/1999 is 8 February)
+- On phones the country and stats date sit under the team name, so the table fits at 360 px
+
 ## 2026-11-06 · Profile-style portraits; Getty dropped (build 14)
 - Player photos are scored to look like a profile photo (head and shoulders, portrait shape, one player, newest)
 - Player tiles fall back to starts and raw counts until a competition's minutes are built

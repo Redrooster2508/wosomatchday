@@ -61,14 +61,16 @@
     else Heat.seasonPanel($("pHeat"), hp, H.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
   }).catch(function () { $("pName").textContent = "Player stats for this competition haven't been built yet."; });
 
-  function facts(list) {
+  function facts(list, after) {
     var dl = $("pFacts");
     list.forEach(function (f) {
       if (!f[1]) return;
       var existing = dl.querySelector('[data-k="' + f[0] + '"]');
       if (existing) { existing.querySelector("dd").textContent = ""; existing.querySelector("dd").appendChild(typeof f[1] === "string" ? document.createTextNode(f[1]) : f[1]); return; }
       var d = el("div"); d.dataset.k = f[0]; d.appendChild(el("dt", null, f[0]));
-      var dd = el("dd"); dd.appendChild(typeof f[1] === "string" ? document.createTextNode(f[1]) : f[1]); d.appendChild(dd); dl.appendChild(d);
+      var dd = el("dd"); dd.appendChild(typeof f[1] === "string" ? document.createTextNode(f[1]) : f[1]); d.appendChild(dd);
+      var prev = after && dl.querySelector('[data-k="' + after + '"]');
+      if (prev) { dl.insertBefore(d, prev.nextSibling); after = f[0]; } else dl.appendChild(d);
     });
   }
 
@@ -189,11 +191,11 @@
     return m ? Math.round(+m[1] * 0.45359237) + " kg (" + Math.round(+m[1]) + " lb)" : "";
   }
 
-  // ESPN profile (age, height, nationality), then a freely licensed portrait from Wikidata / Commons.
+  // ESPN profile (age, height, nationality), then her Wikidata entry: a freely licensed portrait, birthplace and career.
   function profile(p, team) {
     var photo = $("pPhoto");
     photo.style.setProperty("--club", "#" + String(team.color || "334455").replace("#", ""));
-    getJSON("https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/" + encodeURIComponent(p.id)).then(function (d) {
+    var espn = getJSON("https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/" + encodeURIComponent(p.id)).then(function (d) {
       var a = d.athlete || {};
       var nat = null;
       if (a.citizenship) {
@@ -201,17 +203,32 @@
         if (a.flag && /^https:\/\//.test(a.flag.href)) { var f = new Image(); f.src = a.flag.href; f.alt = ""; f.className = "pp-flag"; nat.appendChild(f); }
         nat.appendChild(document.createTextNode(a.citizenship));
       }
-      facts([["Position", a.position && a.position.displayName], ["Nationality", nat], ["Age", a.age ? a.age + (a.displayDOB ? " (born " + a.displayDOB + ")" : "") : ""],
+      var dob = dobOf(a.displayDOB);
+      facts([["Position", a.position && a.position.displayName], ["Nationality", nat],
+        ["Age", a.age ? a.age + (dob ? " (born " + new Date(dob + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + ")" : "") : ""],
         ["Height", height(a.displayHeight)], ["Weight", weight(a.displayWeight)]]);
-    }).catch(function () {});
-    portrait(p.name).then(function (img) {
-      if (!img) return;
-      var im = new Image(); im.src = img.url; im.alt = "Portrait of " + p.name; im.className = "pp-img";
-      im.onload = function () { photo.classList.add("has-img"); };
-      photo.insertBefore(im, photo.firstChild);
-      var cap = $("pCredit"); cap.textContent = "Photo (" + img.year + "): ";
-      var a = el("a", null, img.credit); a.href = img.source; a.target = "_blank"; a.rel = "noopener"; cap.appendChild(a);
-    }).catch(function () {});
+      return { dob: dob, nat: a.citizenship };
+    }).catch(function () { return {}; });
+    espn.then(function (a) {
+      return entity(p.name, a.dob).then(function (hit) {
+        if (!hit) { careerNote("There's no Wikidata entry for her yet, so no career history."); return; }
+        origin(hit.id, a.nat);
+        career(hit.id);
+        return portrait(hit, p.name).then(function (img) {
+          if (!img) return;
+          var im = new Image(); im.src = img.url; im.alt = "Portrait of " + p.name; im.className = "pp-img";
+          im.onload = function () { photo.classList.add("has-img"); };
+          photo.insertBefore(im, photo.firstChild);
+          var cap = $("pCredit"); cap.textContent = "Photo (" + img.year + "): ";
+          var l = el("a", null, img.credit); l.href = img.source; l.target = "_blank"; l.rel = "noopener"; cap.appendChild(l);
+        });
+      });
+    }).catch(function () { careerNote("Couldn't reach Wikidata for her career history. Try again later."); });
+  }
+  // ESPN writes dates of birth as D/M/YYYY
+  function dobOf(txt) {
+    var m = String(txt || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    return m ? m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2) : null;
   }
 
   var OK_LICENCE = /^(cc[ -]by(-sa)?([ -][\d.]+)?|cc0|public domain|pd)/i, SINCE = 2023;
@@ -223,8 +240,29 @@
   // A freely licensed portrait taken in 2023 or later, chosen to look like a profile photo: head and shoulders,
   // taller than wide, just her, newest first. Candidates are her main Wikidata image and her Commons category.
   // Older photos are not shown.
-  function portrait(name) {
-    var W = "https://www.wikidata.org/w/api.php?origin=*&format=json&";
+  var W = "https://www.wikidata.org/w/api.php?origin=*&format=json&";
+  // Her Wikidata item: a female (Q6581072) association football player (Q937857) with this name.
+  // When ESPN gives a date of birth, a namesake born on another day is skipped.
+  function entity(name, dob) {
+    return getJSON(W + "action=wbsearchentities&language=en&limit=7&type=item&search=" + encodeURIComponent(name)).then(function (s) {
+      var ids = (s.search || []).map(function (x) { return x.id; });
+      if (!ids.length) return null;
+      return getJSON(W + "action=wbgetentities&props=claims&ids=" + ids.join("|")).then(function (e) {
+        var players = ids.map(function (i) { return e.entities[i]; }).filter(function (en) {
+          var c = en && en.claims || {};
+          function has(prop, q) { return (c[prop] || []).some(function (x) { var v = x.mainsnak && x.mainsnak.datavalue; return v && v.value && v.value.id === q; }); }
+          return has("P106", "Q937857") && has("P21", "Q6581072");
+        });
+        function born(en) {
+          var c = en.claims.P569, v = c && c[0] && c[0].mainsnak.datavalue && c[0].mainsnak.datavalue.value;
+          if (!v || !dob) return "unknown";
+          return v.time.slice(1, v.precision >= 11 ? 11 : 5) === dob.slice(0, v.precision >= 11 ? 10 : 4) ? "same" : "other";
+        }
+        return players.find(function (en) { return born(en) === "same"; }) || players.find(function (en) { return born(en) === "unknown"; }) || null;
+      });
+    });
+  }
+  function portrait(hit, name) {
     var C = "https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=600&";
     var surname = fold(name.split(/\s+/).slice(-1)[0]);
     function usable(pg) {
@@ -244,30 +282,93 @@
       if (isMain) s += 2;                                                       // her main Wikidata image, all else equal
       return s;
     }
-    return getJSON(W + "action=wbsearchentities&language=en&limit=7&type=item&search=" + encodeURIComponent(name)).then(function (s) {
-      var ids = (s.search || []).map(function (x) { return x.id; });
-      if (!ids.length) return null;
-      return getJSON(W + "action=wbgetentities&props=claims&ids=" + ids.join("|")).then(function (e) {
-        // an association football player (Q937857), female (Q6581072)
-        var hit = ids.map(function (i) { return e.entities[i]; }).find(function (en) {
-          var c = en && en.claims || {};
-          function has(prop, q) { return (c[prop] || []).some(function (x) { var v = x.mainsnak && x.mainsnak.datavalue; return v && v.value && v.value.id === q; }); }
-          return has("P106", "Q937857") && has("P21", "Q6581072");
-        });
-        if (!hit) return null;
-        function val(prop) { var c = hit.claims[prop]; return c && c[0] && c[0].mainsnak.datavalue ? c[0].mainsnak.datavalue.value : null; }
-        var main = val("P18"), cat = val("P373");
-        var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }).catch(function () { return null; }) : Promise.resolve(null);
-        var more = cat ? getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
-          return Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
-            .filter(function (x) { return x && fold(x.title).indexOf(surname) >= 0; });
-        }).catch(function () { return []; }) : Promise.resolve([]);
-        return Promise.all([first, more]).then(function (r) {
-          var list = (r[0] ? [Object.assign(r[0], { main: true })] : []).concat(r[1].filter(function (x) { return !r[0] || x.title !== r[0].title; }));
-          list.sort(function (a, b) { return score(b, b.main) - score(a, a.main); });
-          return list[0] || null;
-        });
-      });
+    function val(prop) { var c = hit.claims[prop]; return c && c[0] && c[0].mainsnak.datavalue ? c[0].mainsnak.datavalue.value : null; }
+    var main = val("P18"), cat = val("P373");
+    var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }).catch(function () { return null; }) : Promise.resolve(null);
+    var more = cat ? getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
+      return Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
+        .filter(function (x) { return x && fold(x.title).indexOf(surname) >= 0; });
+    }).catch(function () { return []; }) : Promise.resolve([]);
+    return Promise.all([first, more]).then(function (r) {
+      var list = (r[0] ? [Object.assign(r[0], { main: true })] : []).concat(r[1].filter(function (x) { return !r[0] || x.title !== r[0].title; }));
+      list.sort(function (a, b) { return score(b, b.main) - score(a, a.main); });
+      return list[0] || null;
     });
+  }
+
+  // Wikidata's query service (CC0 data, open to browsers). Values come back as strings.
+  function sparql(q) {
+    return getJSON("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(q)).then(function (r) {
+      return r.results.bindings.map(function (b) { var o = {}; for (var k in b) o[k] = b[k].value; return o; });
+    });
+  }
+  // Where she was born, and the national team she plays for if ESPN didn't say.
+  function origin(q, espnNat) {
+    sparql("SELECT ?birthLabel ?countryLabel ?sportLabel ?article WHERE {" +
+      " OPTIONAL { wd:" + q + " wdt:P19 ?birth. OPTIONAL { ?birth wdt:P17 ?country } }" +
+      " OPTIONAL { wd:" + q + " wdt:P1532 ?sport }" +
+      " OPTIONAL { ?article schema:about wd:" + q + "; schema:isPartOf <https://en.wikipedia.org/> }" +
+      ' SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } LIMIT 1').then(function (rows) {
+      var r = rows[0] || {}, place = r.birthLabel && !/^Q\d+$/.test(r.birthLabel) ? r.birthLabel : "";
+      if (place && r.countryLabel && r.countryLabel !== place) place += ", " + r.countryLabel;
+      facts([["Born in", place]], "Age");
+      if (!espnNat) facts([["Nationality", r.sportLabel]]);
+      if (/^https:\/\/en\.wikipedia\.org\//.test(r.article || "")) {
+        $("pCareerMore").textContent = " · ";
+        var a = el("a", "pl-link", "Read more on Wikipedia ↗"); a.href = r.article; a.target = "_blank"; a.rel = "noopener";
+        $("pCareerMore").appendChild(a);
+      }
+    }).catch(function () {});
+  }
+
+  function careerNote(t) { var box = $("pCareer"); box.textContent = ""; box.appendChild(el("p", "note", t)); }
+  // Every team she has been registered with (Wikidata P54), with dates, appearances and goals where recorded.
+  function career(q) {
+    sparql("SELECT ?st ?team ?teamLabel ?start ?end ?apps ?goals ?asof ?nat ?countryLabel WHERE {" +
+      " wd:" + q + " p:P54 ?st. ?st ps:P54 ?team." +
+      " OPTIONAL { ?st pq:P580 ?start } OPTIONAL { ?st pq:P582 ?end } OPTIONAL { ?st pq:P1350 ?apps }" +
+      " OPTIONAL { ?st pq:P1351 ?goals } OPTIONAL { ?st pq:P585 ?asof } OPTIONAL { ?team wdt:P17 ?country }" +
+      " BIND(EXISTS { ?team wdt:P31/wdt:P279* wd:Q6979593 } AS ?nat)" +
+      ' SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }').then(function (rows) {
+      var seen = {}, spells = rows.filter(function (r) { if (seen[r.st]) return false; seen[r.st] = 1; return true; });
+      if (!spells.length) { careerNote("Wikidata doesn't list her teams yet."); return; }
+      function yr(t) { return t ? +t.slice(0, 4) : null; }
+      spells.forEach(function (r) { r.y0 = yr(r.start); r.y1 = yr(r.end); });
+      spells.sort(function (a, b) { return (a.y0 || 9999) - (b.y0 || 9999) || (a.y1 || 9999) - (b.y1 || 9999); });
+      var box = $("pCareer"); box.textContent = "";
+      var clubs = spells.filter(function (r) { return r.nat !== "true"; }), intl = spells.filter(function (r) { return r.nat === "true"; });
+      if (clubs.length) box.appendChild(careerTable("Clubs", clubs, true));
+      if (intl.length) box.appendChild(careerTable("International", intl, false));
+    }).catch(function () { careerNote("Couldn't reach Wikidata for her career history. Try again later."); });
+  }
+  // "Canada women's national under-20 soccer team" -> "Canada U20"
+  function teamName(t) {
+    if (!t || /^Q\d+$/.test(t)) return "Unnamed team";
+    return t.replace(/ women's national (?:under-(\d+) )?(?:association )?(?:soccer |football )?team$/i, function (m, u) { return u ? " U" + u : ""; });
+  }
+  function careerTable(title, spells, withCountry) {
+    var wrap = el("div", "pp-career"), asof = spells.some(function (r) { return r.asof; }), stats = spells.some(function (r) { return r.apps || r.goals; });
+    wrap.appendChild(el("h3", null, title));
+    var tw = el("div", "tbl-wrap"), t = el("table", "pl-log pp-ct"), hr = el("tr"), tb = el("tbody");
+    ["Years", "Team"].concat(withCountry ? ["Country"] : []).concat(stats ? ["Apps", "Goals"] : []).concat(asof ? ["As of"] : []).forEach(function (x, i) { hr.appendChild(el("th", (i < (withCountry ? 3 : 2) ? "l" : "") + (x === "Country" || x === "As of" ? " pp-ct-col" : ""), x)); });
+    var th = el("thead"); th.appendChild(hr); t.appendChild(th);
+    spells.slice().reverse().forEach(function (r) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "l num", !r.y0 ? (r.y1 ? "–" + r.y1 : "") : r.y1 === r.y0 ? String(r.y0) : r.y0 + "–" + (r.y1 || "")));
+      var tn = el("td", "l", teamName(r.teamLabel)), when = r.asof ? new Date(r.asof).toLocaleDateString(undefined, { month: "short", year: "numeric" }) : "";
+      // on phones the country and stats date go under the name instead of in their own columns
+      var sub = [withCountry ? r.countryLabel : "", when ? "stats to " + when : ""].filter(Boolean).join(" · ");
+      if (sub) tn.appendChild(el("span", "pp-ct-c", sub));
+      tr.appendChild(tn);
+      if (withCountry) tr.appendChild(el("td", "l pp-ct-col", r.countryLabel || ""));
+      if (stats) {
+        tr.appendChild(el("td", r.apps ? "num" : "zero", r.apps || "—"));
+        tr.appendChild(el("td", r.goals ? "num hit" : "zero", r.goals || (r.apps ? "0" : "—")));
+      }
+      if (asof) tr.appendChild(el("td", "pl-sub pp-ct-col", when));
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); tw.appendChild(t); wrap.appendChild(tw);
+    return wrap;
   }
 })();

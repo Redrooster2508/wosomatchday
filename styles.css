@@ -343,15 +343,29 @@ a.pl-link:hover{text-decoration:underline}
 .pp-rank{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 48px 88px;gap:10px;align-items:center;font-size:14px}
 .pp-rank b{font-family:var(--f-data);font-weight:500;text-align:right}
 .pp-rk{font-family:var(--f-data);font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+.pp-careers{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+.pp-career{display:grid;gap:8px;min-width:0}
+.pp-career h3{font-size:18px}
+.pp-ct{min-width:0;width:100%}
+.pp-ct td.l:nth-child(n+2){white-space:normal;overflow-wrap:break-word;min-width:6em}
+.pp-ct-c{display:none}
+#pCareerMore a{text-decoration:underline}
+.pp-ct td.zero{color:var(--muted)}
+.pp-ct td.hit{font-weight:700}
+.pp-ct .pl-sub{font-family:var(--f-data);font-size:11px;color:var(--muted)}
+.pp-careers > .note{grid-column:1/-1}
 .dotkey{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ink);margin:0 4px 0 10px;vertical-align:0}
 @media (max-width:820px){
-  .pp-two{grid-template-columns:1fr}
+  .pp-two,.pp-careers{grid-template-columns:1fr}
 }
 @media (max-width:560px){
   .pp-hero{grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:center}
   .pp-initials{font-size:48px}
   .pp-rank{grid-template-columns:minmax(0,1fr) 44px 84px;}
   .pp-rank .bk-bar{grid-column:1/-1;grid-row:2}
+  .pp-ct .pp-ct-col{display:none}
+  .pp-ct-c{display:block;font-size:12px;color:var(--muted)}
+  .pp-ct th,.pp-ct td{padding-left:4px;padding-right:4px}
 }
 
 /* small logos inside table cells: a percentage max-width makes Chrome count them as 0px wide when sizing the column */

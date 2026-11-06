@@ -17,3 +17,4 @@ tags: [decisions]
 | 2026-11-06 | Team photos only from **2023 or later** | The user found a 2016 photo; old photos show old squads and kits |
 | 2026-11-06 | Heatmaps from **ESPN play-by-play coordinates** | About 1,500 located events per match, free and live; season grids stored per player |
 | 2026-11-06 | **Version tags** on CSS and JS | Pages caches for 10 minutes; stale CSS hid a fix from the user |
+| 2026-11-06 | Career history and birthplace from **Wikidata** (query service, in the browser) | ESPN has neither; Wikidata is CC0 and open to browsers. Community-edited, so the page names the source and the as-of date |

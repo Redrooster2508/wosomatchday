@@ -6,7 +6,7 @@
 <title>Player · Matchday Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 <script>
 /* GitHub Pages lets browsers keep pages for 10 minutes. If the site has been updated since this copy, refresh it once. */
 (function (build) {
@@ -19,7 +19,7 @@
       }
     }).catch(function () {});
   } catch (e) {}
-})(14);
+})(15);
 </script>
 </head>
 <body>
@@ -56,6 +56,11 @@
     </section>
   </div>
 
+  <section class="card" aria-labelledby="crH">
+    <div class="sec-head"><h2 id="crH">Career</h2><span class="eyebrow">Newest first · from Wikidata, a community-edited database<span id="pCareerMore"></span></span></div>
+    <div id="pCareer" class="pp-careers"><p class="note">Loading career history…</p></div>
+  </section>
+
   <section class="card" aria-labelledby="hH">
     <div class="sec-head"><h2 id="hH">Where she plays</h2><span class="eyebrow">Every touch and shot this season, from ESPN play-by-play</span></div>
     <div id="pHeat"></div>
@@ -67,11 +72,11 @@
   </section>
 
   <footer class="foot">
-    <p class="note" id="pSource">Stats are built from ESPN's public match data. Profile details from ESPN. Player photos are freely licensed portraits from Wikimedia Commons, found through Wikidata and credited under the photo.</p>
+    <p class="note" id="pSource">Stats are built from ESPN's public match data. Profile details from ESPN. Birthplace and career history from Wikidata (CC0); appearances and goals there are usually league games only and can lag behind. Player photos are freely licensed portraits from Wikimedia Commons, found through Wikidata and credited under the photo.</p>
   </footer>
 </div>
 <div id="tip" hidden></div>
-<script src="heat.js?v=14"></script>
-<script src="player-page.js?v=14"></script>
+<script src="heat.js?v=15"></script>
+<script src="player-page.js?v=15"></script>
 </body>
 </html>
