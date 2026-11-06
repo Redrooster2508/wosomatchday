@@ -92,6 +92,8 @@ button,select,input{font:inherit;color:inherit}
 .side{padding:16px;display:grid;gap:10px;align-content:start;min-width:0}
 .photo{position:relative;aspect-ratio:16/10;max-width:100%;border-radius:4px;overflow:hidden;background:var(--sunk)}
 .photo img.ph-img{width:100%;height:100%;object-fit:cover;display:block}
+.photo.ph-whole img.ph-img{position:relative;object-fit:contain}
+.photo img.ph-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(.75);transform:scale(1.15)}
 .photo .crest{position:absolute;right:8px;bottom:8px;width:44px;height:44px;object-fit:contain;background:rgba(255,255,255,.92);border-radius:50%;padding:5px}
 .photo .tag{position:absolute;left:8px;top:8px;font-family:var(--f-data);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:3px;color:#fff}
 .side.home .tag{background:var(--home)} .side.away .tag{background:var(--away)}

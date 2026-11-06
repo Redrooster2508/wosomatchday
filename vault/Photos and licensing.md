@@ -23,6 +23,7 @@ The searches gave 200 candidates from 2023 on, for 37 of 59 clubs. All were revi
 **Still on illustrations (26 clubs):** among them Man City, Aston Villa, Tottenham, Liverpool, Everton, Lyon, PSG and most of Liga F, where no free photo from 2023 on was found. The illustration shows a women's squad (see Team photos below).
 
 ## Team photos
+**Framing:** cards are 16:10 and crop from the centre. A manifest entry can add `"pos": "<x>% <y>%"` (focus point, e.g. `50% 20%` for a line-up in the top half) or `"fit": "whole"` (show a tall photo whole on a blurred copy). Check each new photo at the card crop before adding it.
 Shown in this order:
 1. A viewer's own upload, kept only in their browser
 2. A shared photo listed in `photos/manifest.json`, with `{file, team, credit, source}`

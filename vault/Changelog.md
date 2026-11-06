@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Team photo framing (build 18)
+- Photos can carry framing in `photos/manifest.json`: `"pos": "50% 20%"` moves the card's crop, `"fit": "whole"` shows a tall photo in full on a blurred copy of itself
+- Utah Royals (a tall single-player portrait, cropped through her eyes) now shows whole; Brighton's line-up no longer loses heads
+
 ## 2026-11-06 · Four more team photos
 - Arsenal, West Ham, Benfica and Real Madrid now have freely licensed photos from 2023–2025, found by the Commons sub-folder search; 33 clubs have photos
 

@@ -58,6 +58,7 @@
  "19141": {
   "credit": "Salt City FC, CC BY 4.0, via Wikimedia Commons",
   "file": "19141.png",
+  "fit": "whole",
   "source": "https://commons.wikimedia.org/wiki/File:Kiana_Palacios_Utah_Royals_2026.png",
   "team": "Utah Royals"
  },
@@ -91,6 +92,7 @@
  "19976": {
   "credit": "jamesboyes, CC BY 4.0, via Wikimedia Commons",
   "file": "19976.jpg",
+  "pos": "50% 20%",
   "source": "https://commons.wikimedia.org/wiki/File:Brighton_and_Hove_Albion_Women_2_MUFC_Women_3_02_11_2025-1036.jpg",
   "team": "Brighton & Hove Albion"
  },

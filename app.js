@@ -243,7 +243,7 @@
     var t = m[side], row = tableRow(t.id); node.textContent = "";
     var ph = el("div", "photo"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(t);
     im.alt = Photos.isPhoto(t.id) ? t.name + " team photo" : "Illustrated squad line-up in " + t.name + " colours";
-    ph.appendChild(im);
+    ph.appendChild(im); Photos.frame(ph, im, t.id);
     if (t.logo) { var cr = new Image(); cr.className = "crest"; cr.src = t.logo; cr.alt = t.name + " crest"; ph.appendChild(cr); }
     ph.appendChild(el("span", "tag", m.neutral ? (side === "home" ? "Team A" : "Team B") : (side === "home" ? "Home" : "Away")));
     node.appendChild(ph);

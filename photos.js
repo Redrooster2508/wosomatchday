@@ -104,7 +104,7 @@
     return cv.toDataURL("image/jpeg", 0.86);
   }
 
-  var cache = {}, uploads = {}, shared = {}, credits = {};
+  var cache = {}, uploads = {}, shared = {}, credits = {}, framing = {};
   function key(id) { return "wmh-photo-" + id; }
   function stored(id) { if (uploads[id]) return uploads[id]; try { return localStorage.getItem(key(id)); } catch (e) { return null; } }
   var Photos = {
@@ -116,12 +116,25 @@
             var e = typeof m[id] === "string" ? { file: m[id] } : m[id];
             if (!e || typeof e.file !== "string" || /^[a-z]+:|\.\.|\//i.test(e.file)) return;
             shared[id] = "photos/" + e.file;
+            // optional framing for the 16:10 card: a focus point ("50% 20%"), or "whole" to show all of a tall photo
+            if (/^\d{1,3}% \d{1,3}%$/.test(e.pos || "")) framing[id] = { pos: e.pos };
+            if (e.fit === "whole") framing[id] = { whole: true };
             if (e.credit) credits[id] = { text: String(e.credit), source: /^https:\/\/[^\s"<>]+$/.test(e.source || "") ? e.source : "" };
           });
         })
         .catch(function () {});
     },
     // Credit for the shared photo, when that is the one showing.
+    // frame a team photo in its card: box is the .photo element, im the .ph-img already in it
+    frame: function (box, im, id) {
+      var f = !stored(id) && framing[id];
+      if (!f) return;
+      if (f.pos) im.style.objectPosition = f.pos;
+      if (f.whole) {                     // the whole photo, on a blurred copy of itself
+        var bg = new Image(); bg.className = "ph-bg"; bg.src = im.src; bg.alt = "";
+        box.classList.add("ph-whole"); box.insertBefore(bg, im);
+      }
+    },
     credit: function (id) { return stored(id) ? null : credits[id] || null; },
     // Order: this browser's upload, then the site's shared photo, then the illustration.
     get: function (team) { var s = stored(team.id) || shared[team.id]; if (s) return s; if (!cache[team.id]) cache[team.id] = drawSquad(team); return cache[team.id]; },

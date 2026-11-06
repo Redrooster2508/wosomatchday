@@ -40,7 +40,7 @@
     var cr = $("tCrest"); cr.appendChild(logo(crest)); cr.appendChild(el("span", null, NAMES[slug][0]));
     // photo: shared or illustrated
     var tObj = { id: id, color: color, alternateColor: alt };
-    var ph = $("tPhoto"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(tObj); im.alt = Photos.isPhoto(id) ? name + " team photo" : "Illustrated line-up in " + name + " colours"; ph.appendChild(im);
+    var ph = $("tPhoto"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(tObj); im.alt = Photos.isPhoto(id) ? name + " team photo" : "Illustrated line-up in " + name + " colours"; ph.appendChild(im); Photos.frame(ph, im, id);
     if (crest) ph.appendChild(logo(crest, "crest"));
     var c = Photos.credit(id);
     if (c) { $("tCredit").textContent = "Photo: "; if (c.source) { var a = el("a", null, c.text); a.href = c.source; a.target = "_blank"; a.rel = "noopener"; $("tCredit").appendChild(a); } else $("tCredit").appendChild(document.createTextNode(c.text)); }
