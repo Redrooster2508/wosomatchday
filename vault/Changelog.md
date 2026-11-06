@@ -8,7 +8,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 ## Unreleased (local, not pushed)
 - `.github/workflows/players.yml`: scheduled player stats rebuild, refused by GitHub (the token has no `workflow` scope)
 - Team photo shortlist from Commons and Openverse, under review
-- README rewritten; this vault added
+
+## 2026-11-06 · `dba68e8` · Documentation
+- README rewritten: features, files, model, database, photos, publishing
+- This Obsidian vault: architecture, data sources, model, database, bracket, photos, testing, deployment, decisions, open issues, session log
 
 ## 2026-11-06 13:09 · `8199aba` · News, player stats, player pages
 - News: five latest ESPN stories per competition, newest as a lead story
