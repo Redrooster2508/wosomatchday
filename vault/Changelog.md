@@ -7,6 +7,9 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Four more team photos
+- Arsenal, West Ham, Benfica and Real Madrid now have freely licensed photos from 2023–2025, found by the Commons sub-folder search; 33 clubs have photos
+
 ## 2026-11-06 · Illustrated squads drawn as women (build 17)
 - The stand-in team picture (for clubs with no free recent photo) now shows women: ponytails, top knots, long hair, braids, curls and bobs, hair ties in the second kit colour, simple faces
 - Fix: a figure's arms and legs now match her face's skin tone

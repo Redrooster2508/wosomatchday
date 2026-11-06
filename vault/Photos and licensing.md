@@ -18,7 +18,9 @@ The searches gave 200 candidates from 2023 on, for 37 of 59 clubs. All were revi
 
 **Rejected:** a Pride parade and a Birmingham player (Man City); trophies and stadium shots (Arsenal, Aston Villa); a 1909 team photo uploaded recently (Badalona); basketball and sailing (Valencia); cricket and an unrelated tournament (Inter); a distant final (Paris FC); a wreath ceremony (NC Courage); a musician (Orlando).
 
-**Still on illustrations (30 clubs):** among them Arsenal, Man City, Aston Villa, Tottenham, Liverpool, Everton, West Ham, Real Madrid, Lyon, PSG and most of Liga F, where no free photo from 2023 on was found.
+**Sub-folder pass (2026-11-06):** searching Commons club sub-folders (match categories) found candidates for 12 of the 30 remaining clubs. **4 picked:** Arsenal (v Vålerenga, Dec 2024), West Ham (pre-season at Lewes, 2023), Benfica (line-up v Juventus, 2025; released by the club itself under CC BY 3.0) and Real Madrid (substitution v Vålerenga, 2023). Rejected: Deportivo (the players shown may be Barcelona's), Valencia (basketball again), PSG (France national team), Man City (Pride parade, unclear kit), Inter, Badalona, NC Courage and Paris FC as before. **33 clubs** now have photos.
+
+**Still on illustrations (26 clubs):** among them Man City, Aston Villa, Tottenham, Liverpool, Everton, Lyon, PSG and most of Liga F, where no free photo from 2023 on was found. The illustration shows a women's squad (see Team photos below).
 
 ## Team photos
 Shown in this order:

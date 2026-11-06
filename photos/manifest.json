@@ -76,6 +76,18 @@
  },
  "19971": null,
  "19972": null,
+ "19973": {
+  "credit": "MichaelEmilio, CC BY 4.0, via Wikimedia Commons",
+  "file": "19973.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Valerenga-Arsenal_WUCL_12-12-2024_CG3A4421_41.jpg",
+  "team": "Arsenal"
+ },
+ "19975": {
+  "credit": "James Boyes, CC BY 2.0, via Wikimedia Commons",
+  "file": "19975.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Lewes_FC_Women_v_West_Ham_Utd_Women_pre_season_20_08_2023-588.jpg",
+  "team": "West Ham United"
+ },
  "19976": {
   "credit": "jamesboyes, CC BY 4.0, via Wikimedia Commons",
   "file": "19976.jpg",
@@ -112,7 +124,12 @@
   "source": "https://commons.wikimedia.org/wiki/File:V%C3%A5lerenga_Fotball_Damer_v_FC_Bayern_M%C3%BCnchen_Frauen,_21_November_2024_05.jpg",
   "team": "Bayern Munich"
  },
- "20830": null,
+ "20830": {
+  "credit": "Sport Lisboa e Benfica, CC BY 3.0, via Wikimedia Commons",
+  "file": "20830.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Benfica_vs_Juventus_2025_UWCL_3.png",
+  "team": "Benfica"
+ },
  "20905": {
   "credit": "Bryan Berlin, CC BY-SA 4.0, via Wikimedia Commons",
   "file": "20905.jpg",
@@ -148,6 +165,12 @@
   "file": "21124.jpg",
   "source": "https://commons.wikimedia.org/wiki/File:20250323,_Damallsvenskan,_BK_H%C3%A4cken_-_Malm%C3%B6_FF_044.jpg",
   "team": "BK Häcken"
+ },
+ "21128": {
+  "credit": "MichaelEmilio, CC BY 4.0, via Wikimedia Commons",
+  "file": "21128.jpg",
+  "source": "https://commons.wikimedia.org/wiki/File:Valerenga_v_Real_Madrid,_2023_-_B_11.jpg",
+  "team": "Real Madrid"
  },
  "21140": null,
  "21374": null,
