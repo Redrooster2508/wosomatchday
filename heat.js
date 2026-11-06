@@ -133,7 +133,7 @@
     function draw() {
       var plays = mstate.plays || [];
       box.textContent = "";
-      if (!plays.length) { box.appendChild(el("p", "note", "No play-by-play in the feed for this match.")); return; }
+      if (!plays.length) { box.appendChild(el("p", "note", "ESPN's play-by-play for this match has no pitch positions, so there's no heatmap or shot map." + (ctx.slug === "esp.w.1" ? " Liga F matches only list goals, cards and substitutions." : ""))); return; }
       var grid = el("div", "hm-grid"); box.appendChild(grid);
       // touches
       var left = el("div", "hm-col"); grid.appendChild(left);

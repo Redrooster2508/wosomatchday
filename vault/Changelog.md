@@ -9,6 +9,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 - `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
 - Recent (2023+) team photo shortlist from Commons and Openverse, under review
 
+## 2026-11-06 · WSL heatmaps; Liga F coverage note
+- Season heatmaps and shot maps built for the WSL (281 players, 56 matches)
+- Liga F: ESPN's play-by-play has no pitch positions, so the site says there's no heatmap instead of showing an empty one
+
 ## 2026-11-06 · Heatmaps; old photos removed
 - **Match centre:** touch heatmap for either team or any player, and a shot map with both teams, refreshed every minute while live (`heat.js`)
 - **Player pages:** season heatmap and shot map from `data/<league>/heat.json`, built by `tools/build_heat.py` (incremental)

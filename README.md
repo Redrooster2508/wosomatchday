@@ -54,7 +54,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 - `data/<league>/matches.json`: every finished match, with each player's line (goals, assists, shots, shots on target, saves, goals conceded, cards, fouls, own goals)
 - `data/<league>/players.json`: season totals per player, plus club names, logos and colours
 
-`tools/build_heat.py` then reads each match's play-by-play (about 1,500 events with pitch coordinates) and writes `data/<league>/heat.json`: each player's touches on a 24 × 16 grid in her attacking direction, plus every shot with its spot and outcome.
+`tools/build_heat.py` then reads each match's play-by-play (about 1,500 events with pitch coordinates) and writes `data/<league>/heat.json`: each player's touches on a 24 × 16 grid in her attacking direction, plus every shot with its spot and outcome. ESPN's Liga F play-by-play has no pitch positions, so Liga F has no heatmaps.
 
 Both only fetch matches they haven't stored yet.
 
@@ -100,7 +100,7 @@ python3 -m http.server 8000
 
 ## Publishing
 
-GitHub Pages serves the `main` branch root. CSS and JS links carry a version tag (`?v=8`). Raise it when those files change, so browsers don't keep a cached copy for up to 10 minutes.
+GitHub Pages serves the `main` branch root. CSS and JS links carry a version tag (`?v=9`). Raise it when those files change, so browsers don't keep a cached copy for up to 10 minutes.
 
 ## Data
 

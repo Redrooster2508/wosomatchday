@@ -48,6 +48,7 @@
     table(log, M);
     profile(p, team);
     getJSON("data/" + slug + "/heat.json").then(function (h) {
+      if (!Object.keys(h.players || {}).length) { $("pHeat").appendChild(el("p", "note", "ESPN's play-by-play for this competition has no pitch positions, so there's no heatmap.")); return; }
       Heat.seasonPanel($("pHeat"), h.players[p.id], h.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
     }).catch(function () { $("pHeat").appendChild(el("p", "note", "Heatmaps for this competition haven't been built yet.")); });
   }).catch(function () { $("pName").textContent = "Player stats for this competition haven't been built yet."; });

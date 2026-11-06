@@ -34,5 +34,6 @@ Unofficial and undocumented, so fields can change without notice.
 - **Own goals.** In the scoreboard's event list the credited side isn't reliable, so the timeline replay flips own goals if the replayed score doesn't match the real one.
 - **Season leaders text.** `displayValue` reads like `Matches: 6, Goals: 6`; the last number is the stat.
 - **Event type names overlap.** "Goal Kick" starts with "Goal"; match exact names. See [[Heatmaps]].
+- **Liga F play-by-play has no coordinates**: only key events. See [[Heatmaps]].
 - **Play-by-play paging:** `limit=1000` works, so 2 pages per match.
 - **No expected-goals (xG) data.** The feed has no xG, so probabilities come from odds or goals.

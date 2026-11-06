@@ -24,6 +24,16 @@ Built from ESPN's play-by-play ([[Data sources (ESPN)]]): about 1,500 events per
 - `tools/build_heat.py` adds up each player's touches on a **24 × 16 grid** and keeps every shot (spot, outcome, opponent, date). Incremental, like the [[Player stats database]].
 - The page draws the grid as a smoothed heatmap and a season shot map.
 
+## Coverage
+| League | Pitch positions |
+|---|---|
+| WSL | Yes |
+| NWSL | Yes |
+| Champions League | Yes |
+| Liga F | **No**: only goals, cards and substitutions (about 16 events per match), no coordinates |
+
+The site says so on Liga F match centres and player pages.
+
 ## Gotchas
 - **"Goal Kick" starts with "Goal".** The first version counted every goal kick as a goal: Aston Villa showed 21 shots on target instead of 1. Now only `Goal` or `Goal - …` count.
 - **ID clash:** the first panel used `id="heat"`, already used by the score-probability grid, so both drew into the same box. Renamed to `pitchHeat`.
