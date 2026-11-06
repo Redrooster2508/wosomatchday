@@ -37,7 +37,7 @@ The automatic picks were often wrong: the opponent in a match photo, a men's sid
 First pass (2026-11-06): 26 of 47 kept, 21 rejected and marked `null` in the manifest.
 
 ## Player portraits
-**Target look** (user's example, Cloé Lacasse): a recent, head-and-shoulders portrait, taller than wide, one player, in kit. The page scores every 2023+ candidate (her main Wikidata image and her Commons category): newest year first (×10), portrait shape +8 (ratio ≥ 1.15) or +3 (roughly square), "(cropped)" +6, match or group scenes −6, several people named −4, main image +2.
+**Target look** (user's example, Cloé Lacasse): a recent, head-and-shoulders portrait, taller than wide, one player, in kit. The page scores every 2023+ candidate (her main Wikidata image and her Commons category): year ×4, tagged on Commons as depicting her +6 (files tagged only as something or someone else are skipped, e.g. a sign named after her), portrait shape +8 (ratio ≥ 1.15) or +3 (roughly square), "(cropped)" +6, match or group scenes −6, several people named −4, main image +2.
 
 The same **2023 or later** rule applies: the main Wikidata image (`P18`) if it's recent, otherwise the newest licensed photo in the player's Commons category (`P373`) whose title names her, preferring portrait shape. If there isn't one, the page shows initials. The credit shows the year.
 

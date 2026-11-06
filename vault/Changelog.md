@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Player photos must show the player (build 16)
+- Commons "depicts" tags are checked: a file tagged as showing something or someone else is skipped, a file tagged as her gets a bonus
+- Portrait shape and tags now outweigh a year or two of recency (Bonmatí had a 2026 photo of a sign with her name on it; she now gets her 2024 portrait)
+
 ## 2026-11-06 · Player career history and birthplace (build 15)
 - Player pages get a **Career** section: every club and national team from Wikidata, with years, country, and appearances and goals where recorded (with the date they were counted to)
 - "Born in" fact (birthplace and country) and a Wikipedia link

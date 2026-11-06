@@ -270,11 +270,12 @@
       var meta = ii.extmetadata || {}, lic = plain(meta.LicenseShortName && meta.LicenseShortName.value), year = yearOf(meta, pg.title);
       if (!OK_LICENCE.test(lic) || !year || year < SINCE || !/\.(jpe?g|png|webp)$/i.test(pg.title)) return null;
       var who = plain(meta.Artist && meta.Artist.value).slice(0, 80) || "Unknown author";
-      return { url: ii.thumburl || ii.url, year: year, ratio: ii.height / Math.max(1, ii.width), title: pg.title, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
+      return { id: pg.pageid, url: ii.thumburl || ii.url, year: year, ratio: ii.height / Math.max(1, ii.width), title: pg.title, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
     }
     // how much a photo looks like a profile photo
     function score(img, isMain) {
-      var t = fold(img.title), s = img.year * 10;
+      var t = fold(img.title), s = img.year * 4;                              // newer is better, but a recent photo of something else isn't
+      if (img.her) s += 6;                                                    // tagged on Commons as showing her
       if (img.ratio >= 1.15) s += 8; else if (img.ratio >= 0.95) s += 3;       // portrait shape
       if (/\(cropped\)/.test(t)) s += 6;                                      // Commons crops are usually head and shoulders
       if (/ (v|vs|versus|against) |starting xi|line-?up|team|squad|celebrat|training|stadium/.test(t)) s -= 6;  // match or group scenes
@@ -284,6 +285,7 @@
     }
     function val(prop) { var c = hit.claims[prop]; return c && c[0] && c[0].mainsnak.datavalue ? c[0].mainsnak.datavalue.value : null; }
     var main = val("P18"), cat = val("P373");
+    depicts.q = hit.id;
     var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }).catch(function () { return null; }) : Promise.resolve(null);
     var more = cat ? getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
       return Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
@@ -291,9 +293,25 @@
     }).catch(function () { return []; }) : Promise.resolve([]);
     return Promise.all([first, more]).then(function (r) {
       var list = (r[0] ? [Object.assign(r[0], { main: true })] : []).concat(r[1].filter(function (x) { return !r[0] || x.title !== r[0].title; }));
+      return depicts(list).then(function () { return list.filter(function (x) { return x.main || x.her !== false; }); });
+    }).then(function (list) {
       list.sort(function (a, b) { return score(b, b.main) - score(a, a.main); });
       return list[0] || null;
     });
+  }
+
+  // Commons "depicts" tags (P180) on each file: mark files tagged as her (her = true) or only as something
+  // or someone else (her = false), such as a sign or a stadium named after her. Untagged files stay undecided.
+  function depicts(list) {
+    var ids = list.filter(function (x) { return x.id; }).slice(0, 50).map(function (x) { return "M" + x.id; });
+    if (!ids.length) return Promise.resolve();
+    return getJSON("https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=wbgetentities&props=claims&ids=" + ids.join("|")).then(function (r) {
+      list.forEach(function (x) {
+        var en = r.entities && r.entities["M" + x.id], st = en && !Array.isArray(en.statements) && en.statements || {};
+        var tags = (st.P180 || []).map(function (c) { var v = c.mainsnak && c.mainsnak.datavalue; return v && v.value && v.value.id; }).filter(Boolean);
+        if (tags.length) x.her = tags.indexOf(depicts.q) >= 0;
+      });
+    }).catch(function () {});
   }
 
   // Wikidata's query service (CC0 data, open to browsers). Values come back as strings.
