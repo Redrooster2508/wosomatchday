@@ -76,9 +76,12 @@
     var gk = line(p.pos) === "GK", box = $("pTiles");
     var conv = p.SHOT ? Math.round(100 * p.G / p.SHOT) + "%" : "—";
     function p90(v) { return p.min ? (v / p.min * 90).toFixed(2) : "—"; }
+    // per-90 tiles need minutes; until a competition's minutes are built, show starts and raw counts instead
     var list = gk
-      ? [["Apps", p.apps], ["Minutes", p.min || "—"], ["Saves", p.SV], ["Conceded", p.GA], ["Clean sheets", p.cs], ["Saves per 90", p90(p.SV)], ["Cards", p.YC + p.RC]]
-      : [["Apps", p.apps], ["Minutes", p.min || "—"], ["Goals", p.G], ["Assists", p.A], ["Goals per 90", p90(p.G)], ["Shots", p.SHOT], ["Shots per 90", p90(p.SHOT)], ["Conversion", conv], ["Cards", p.YC + p.RC]];
+      ? (p.min ? [["Apps", p.apps], ["Minutes", p.min], ["Saves", p.SV], ["Conceded", p.GA], ["Clean sheets", p.cs], ["Saves per 90", p90(p.SV)], ["Cards", p.YC + p.RC]]
+               : [["Apps", p.apps], ["Starts", p.starts], ["Saves", p.SV], ["Conceded", p.GA], ["Clean sheets", p.cs], ["Saves/app", p.apps ? (p.SV / p.apps).toFixed(1) : "—"], ["Cards", p.YC + p.RC]])
+      : (p.min ? [["Apps", p.apps], ["Minutes", p.min], ["Goals", p.G], ["Assists", p.A], ["Goals per 90", p90(p.G)], ["Shots", p.SHOT], ["Shots per 90", p90(p.SHOT)], ["Conversion", conv], ["Cards", p.YC + p.RC]]
+               : [["Apps", p.apps], ["Starts", p.starts], ["Goals", p.G], ["Assists", p.A], ["Shots", p.SHOT], ["On target", p.SOG], ["Conversion", conv], ["Fouls won", p.FA], ["Cards", p.YC + p.RC]]);
     list.forEach(function (t) { var d = el("div", "pl-tile"); d.appendChild(el("b", "num", String(t[1]))); d.appendChild(el("span", null, t[0])); box.appendChild(d); });
   }
 
@@ -217,8 +220,9 @@
     var ys = (plain(meta.DateTimeOriginal && meta.DateTimeOriginal.value).match(/(?:19|20)\d\d/g) || String(title).match(/(?:19|20)\d\d/g) || []).map(Number);
     return ys.length ? Math.max.apply(null, ys) : null;
   }
-  // A freely licensed portrait taken in 2023 or later: the player's main Wikidata image if it is recent,
-  // otherwise the newest suitable photo in her Commons category. Older photos are not shown.
+  // A freely licensed portrait taken in 2023 or later, chosen to look like a profile photo: head and shoulders,
+  // taller than wide, just her, newest first. Candidates are her main Wikidata image and her Commons category.
+  // Older photos are not shown.
   function portrait(name) {
     var W = "https://www.wikidata.org/w/api.php?origin=*&format=json&";
     var C = "https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=600&";
@@ -228,7 +232,17 @@
       var meta = ii.extmetadata || {}, lic = plain(meta.LicenseShortName && meta.LicenseShortName.value), year = yearOf(meta, pg.title);
       if (!OK_LICENCE.test(lic) || !year || year < SINCE || !/\.(jpe?g|png|webp)$/i.test(pg.title)) return null;
       var who = plain(meta.Artist && meta.Artist.value).slice(0, 80) || "Unknown author";
-      return { url: ii.thumburl || ii.url, year: year, tall: ii.height >= ii.width, title: pg.title, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
+      return { url: ii.thumburl || ii.url, year: year, ratio: ii.height / Math.max(1, ii.width), title: pg.title, credit: who + ", " + lic + ", via Wikimedia Commons", source: ii.descriptionurl };
+    }
+    // how much a photo looks like a profile photo
+    function score(img, isMain) {
+      var t = fold(img.title), s = img.year * 10;
+      if (img.ratio >= 1.15) s += 8; else if (img.ratio >= 0.95) s += 3;       // portrait shape
+      if (/\(cropped\)/.test(t)) s += 6;                                      // Commons crops are usually head and shoulders
+      if (/ (v|vs|versus|against) |starting xi|line-?up|team|squad|celebrat|training|stadium/.test(t)) s -= 6;  // match or group scenes
+      if (/ and |, .*,| & /.test(t.replace(/\.[a-z]+$/, ""))) s -= 4;          // several people named
+      if (isMain) s += 2;                                                       // her main Wikidata image, all else equal
+      return s;
     }
     return getJSON(W + "action=wbsearchentities&language=en&limit=7&type=item&search=" + encodeURIComponent(name)).then(function (s) {
       var ids = (s.search || []).map(function (x) { return x.id; });
@@ -243,15 +257,15 @@
         if (!hit) return null;
         function val(prop) { var c = hit.claims[prop]; return c && c[0] && c[0].mainsnak.datavalue ? c[0].mainsnak.datavalue.value : null; }
         var main = val("P18"), cat = val("P373");
-        var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }) : Promise.resolve(null);
-        return first.then(function (img) {
-          if (img || !cat) return img;
-          return getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
-            var list = Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
-              .filter(function (x) { return x && fold(x.title).indexOf(surname) >= 0; });
-            list.sort(function (a, b) { return (b.year - a.year) || (b.tall - a.tall); });
-            return list[0] || null;
-          });
+        var first = main ? getJSON(C + "titles=" + encodeURIComponent("File:" + main)).then(function (r) { var pgs = r.query && r.query.pages; return usable(pgs && pgs[Object.keys(pgs)[0]]); }).catch(function () { return null; }) : Promise.resolve(null);
+        var more = cat ? getJSON(C + "generator=categorymembers&gcmtype=file&gcmlimit=50&gcmsort=timestamp&gcmdir=desc&gcmtitle=" + encodeURIComponent("Category:" + cat)).then(function (r) {
+          return Object.keys((r.query && r.query.pages) || {}).map(function (k) { return usable(r.query.pages[k]); })
+            .filter(function (x) { return x && fold(x.title).indexOf(surname) >= 0; });
+        }).catch(function () { return []; }) : Promise.resolve([]);
+        return Promise.all([first, more]).then(function (r) {
+          var list = (r[0] ? [Object.assign(r[0], { main: true })] : []).concat(r[1].filter(function (x) { return !r[0] || x.title !== r[0].title; }));
+          list.sort(function (a, b) { return score(b, b.main) - score(a, a.main); });
+          return list[0] || null;
         });
       });
     });

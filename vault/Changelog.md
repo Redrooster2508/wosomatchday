@@ -7,6 +7,11 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-06 · Profile-style portraits; Getty dropped (build 14)
+- Player photos are scored to look like a profile photo (head and shoulders, portrait shape, one player, newest)
+- Player tiles fall back to starts and raw counts until a competition's minutes are built
+- Getty embeds don't display in the user's browser (Getty's image server refuses it), so the idea is dropped and the test page removed
+
 ## 2026-11-06 · Team pages, head to head, passes, goal mouth, minutes (build 13)
 - **Team pages** with forecast, results and fixtures, squad, team maps and head to head
 - **Head to head** in the match centre and on team pages (last five seasons)
