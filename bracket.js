@@ -152,7 +152,7 @@
       table.filter(function (r) { return r.rank >= g.from && r.rank <= g.to; }).forEach(function (r) {
         var row = el("div", "bk-team" + (g.out ? " out" : ""));
         if (r.logo) { var im = new Image(); im.src = r.logo; im.alt = ""; im.loading = "lazy"; row.appendChild(im); }
-        row.appendChild(el("span", "bk-seed num", String(r.rank))); row.appendChild(el("span", "bk-name", r.name)); row.appendChild(el("span", "bk-score num", r.pts + " pts"));
+        row.appendChild(el("span", "bk-seed num", String(r.rank))); row.appendChild(el("span", "bk-name", r.name)); row.appendChild(el("span", "bk-score num", r.pts + (r.pts === 1 ? " pt" : " pts")));
         stack.appendChild(row);
       });
       col.appendChild(stack);

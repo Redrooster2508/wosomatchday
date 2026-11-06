@@ -10,6 +10,8 @@ Usage:
   python3 tools/fetch_photos.py                 # fill in teams that have no photo yet
   python3 tools/fetch_photos.py --force 19970   # search again for one team
   python3 tools/fetch_photos.py --skip 19970    # never pick a photo for this team (keeps the illustration)
+  python3 tools/fetch_photos.py --pick 19970="File:Chelsea FC Women team.jpg"   # use this exact file
+                                                 (see tools/photo_candidates.py for a shortlist)
 """
 import html, json, os, re, sys, time, urllib.parse, urllib.request
 
@@ -109,6 +111,41 @@ def credit(page):
     return artist, plain(meta.get("LicenseShortName", {}).get("value"))
 
 
+def save(man, tid, team_name, page):
+    """Download a page's 1280px rendition to photos/<tid> and record its credit."""
+    ii = page["imageinfo"][0]
+    url = ii.get("thumburl") or ii["url"]
+    ext = os.path.splitext(urllib.parse.urlparse(url).path)[1].lower()
+    if ext not in (".jpg", ".jpeg", ".png", ".webp"):
+        ext = ".jpg"
+    for old in os.listdir(PHOTOS):
+        if os.path.splitext(old)[0] == tid:
+            os.remove(os.path.join(PHOTOS, old))
+    fname = tid + ext
+    data = get(url)
+    with open(os.path.join(PHOTOS, fname), "wb") as f:
+        f.write(data)
+    artist, lic = credit(page)
+    man[tid] = {"file": fname, "team": team_name, "credit": f"{artist}, {lic}, via Wikimedia Commons", "source": ii.get("descriptionurl", "")}
+
+
+def pick(man, choices):
+    """--pick id="File:Title" ...: use exactly these Commons files."""
+    names = {t["id"]: t["name"] for t in teams()}
+    for c in choices:
+        tid, title = c.split("=", 1)
+        p = {"action": "query", "format": "json", "titles": title, "prop": "imageinfo", "iiprop": "url|extmetadata|size", "iiurlwidth": "1280"}
+        page = next(iter(json.loads(get("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(p)))["query"]["pages"].values()))
+        if "imageinfo" not in page:
+            print(f"  not found  {title}"); continue
+        lic = plain(page["imageinfo"][0].get("extmetadata", {}).get("LicenseShortName", {}).get("value"))
+        if not OK_LICENCE.search(lic):
+            print(f"  refused (licence {lic!r})  {title}"); continue
+        save(man, tid, names.get(tid, tid), page)
+        print(f"  saved  {names.get(tid, tid):<26} {title[:70]}")
+        time.sleep(0.3)
+
+
 def main():
     args = sys.argv[1:]
     force = set(args[args.index("--force") + 1:]) if "--force" in args else set()
@@ -116,7 +153,15 @@ def main():
     os.makedirs(PHOTOS, exist_ok=True)
     man = json.load(open(MANIFEST)) if os.path.exists(MANIFEST) else {}
     for sid in skip:
+        for old in os.listdir(PHOTOS):
+            if os.path.splitext(old)[0] == sid:
+                os.remove(os.path.join(PHOTOS, old))
         man[sid] = None
+    if "--pick" in args:
+        pick(man, args[args.index("--pick") + 1:])
+        with open(MANIFEST, "w") as f:
+            json.dump(man, f, indent=1, ensure_ascii=False, sort_keys=True)
+        return
     for t in teams():
         if t["id"] in man and t["id"] not in force:
             continue

@@ -240,7 +240,7 @@
     if (Photos.hasUpload(t.id)) { var rs = el("button", "btn", "Remove my photo"); rs.type = "button"; rs.addEventListener("click", function () { Photos.clear(t.id); renderMatch(); }); act.appendChild(rs); }
     node.appendChild(act);
     node.appendChild(el("div", "tname", t.name));
-    var meta = row ? ord(row.rank) + " · " + row.pts + " pts · " + row.w + "W " + row.d + "D " + row.l + "L · GD " + (row.gd > 0 ? "+" : "") + row.gd : (t.record || "");
+    var meta = row ? ord(row.rank) + " · " + row.pts + (row.pts === 1 ? " pt · " : " pts · ") + row.w + "W " + row.d + "D " + row.l + "L · GD " + (row.gd > 0 ? "+" : "") + row.gd : (t.record || "");
     node.appendChild(el("div", "tmeta", meta));
     var lf = lastFive(t.id);
     if (lf && lf.length) {
@@ -391,7 +391,12 @@
   function renderTimeline(m) {
     var box = $("timeline"); box.textContent = "";
     var s = state.summaryFor === m.id && state.summary, ke = s && s.raw.keyEvents || [];
-    var items = ke.filter(function (e) { var t = e.type && e.type.type || ""; return /goal|card|substitution|halftime|end|start|kickoff|penalty/i.test(t) || e.scoringPlay; });
+    // goals, cards, substitutions, penalties and the half markers; injury delays and restarts are left out
+    var items = ke.filter(function (e) {
+      var t = (e.type && (e.type.type || e.type.text) || "") + " " + (e.text || "");
+      if (/delay/i.test(t)) return false;
+      return e.scoringPlay || /goal|card|substitution|penalty|half|kickoff|end-regular|full.?time/i.test(t);
+    });
     if (!items.length) {
       m.details.forEach(function (d) { items.push({ _d: d }); });
     }
@@ -422,7 +427,7 @@
     var m = state.matches.find(function (x) { return x.id === state.sel; });
     if (!state.table.length) { $("tblNote").textContent = ""; return; }
     var thead = el("thead"), tr = el("tr");
-    [["#", ""], ["Club", "l"], ["P", ""], ["W", ""], ["D", ""], ["L", ""], ["GF", ""], ["GA", ""], ["GD", ""], ["Pts", ""], ["Goals/game", ""], ["Conceded/game", ""]].forEach(function (c) { tr.appendChild(el("th", c[1], c[0])); });
+    [["#", ""], ["Club", "l club"], ["P", ""], ["W", ""], ["D", ""], ["L", ""], ["GF", ""], ["GA", ""], ["GD", ""], ["Pts", ""], ["Scored/gm", "wide"], ["Conceded/gm", "wide"]].forEach(function (c) { tr.appendChild(el("th", c[1], c[0])); });
     thead.appendChild(tr); tb.appendChild(thead);
     var body = el("tbody"), zones = {};
     state.table.forEach(function (r) {
@@ -431,11 +436,13 @@
       var pos = el("td", "pos", String(r.rank));
       if (r.note && r.note.color) { pos.style.borderLeftColor = r.note.color; zones[r.note.description] = r.note.color; }
       row.appendChild(pos);
-      var tc = el("td", "l team"); if (r.logo) { var im = new Image(); im.src = r.logo; im.alt = ""; im.loading = "lazy"; tc.appendChild(im); } tc.appendChild(el("span", null, r.name)); row.appendChild(tc);
+      var tc = el("td", "l team"), inner = el("span", "tc");
+      if (r.logo) { var im = new Image(); im.src = r.logo; im.alt = ""; inner.appendChild(im); }
+      inner.appendChild(el("span", null, r.name)); tc.appendChild(inner); row.appendChild(tc);
       [r.gp, r.w, r.d, r.l, r.gf, r.ga, (r.gd > 0 ? "+" : "") + r.gd].forEach(function (v) { row.appendChild(el("td", null, String(v))); });
       row.appendChild(el("td", "pts", String(r.pts)));
-      row.appendChild(el("td", null, r.gp ? (r.gf / r.gp).toFixed(2) : "—"));
-      row.appendChild(el("td", null, r.gp ? (r.ga / r.gp).toFixed(2) : "—"));
+      row.appendChild(el("td", "wide", r.gp ? (r.gf / r.gp).toFixed(2) : "—"));
+      row.appendChild(el("td", "wide", r.gp ? (r.ga / r.gp).toFixed(2) : "—"));
       body.appendChild(row);
     });
     tb.appendChild(body);
@@ -536,18 +543,20 @@
     var phases = (state.phases || []).filter(function (p) { return KNOCKOUT.test(p.label) && !NOT_KNOCKOUT.test(p.label); });
     if (!phases.length) { state.bracket = null; return Promise.resolve(); }
     if (state.bracketLeague === league && Date.now() - state.bracketAt < (anyLive() ? LIVE_MS * 2 : TABLE_MS)) return Promise.resolve();
-    var horizon = Date.now() + 45 * 864e5, dayUrls = {}, years = {};
+    var dayUrls = {}, years = {};
     phases.forEach(function (p) {
       var s = new Date(p.start), e = new Date(new Date(p.end) - 8 * 3600e3);
-      if (s > horizon) return;
+      if (s > Date.now()) return; // rounds that haven't started are shown as empty slots until they begin
       var days = Math.round((e - s) / 864e5) + 1;
       if (days <= 10) for (var d = new Date(s); d <= e; d = new Date(+d + 864e5)) dayUrls[utcDay(d)] = 1;
       else { years[s.getUTCFullYear()] = 1; years[e.getUTCFullYear()] = 1; }
     });
     var reqs = Object.keys(dayUrls).map(function (d) { return SITE + cfg.slug + "/scoreboard?dates=" + d; })
-      .concat(Object.keys(years).filter(function (y) { return +y <= new Date(horizon).getUTCFullYear(); }).map(function (y) { return SITE + cfg.slug + "/scoreboard?dates=" + y + "&limit=400"; }));
-    return Promise.all(reqs.map(function (u) { return getJSON(u).catch(function () { return { events: [] }; }); })).then(function (res) {
+      .concat(Object.keys(years).filter(function (y) { return +y <= new Date().getUTCFullYear(); }).map(function (y) { return SITE + cfg.slug + "/scoreboard?dates=" + y + "&limit=400"; }));
+    var failed = 0;
+    return Promise.all(reqs.map(function (u) { return getJSON(u).catch(function () { failed++; return { events: [] }; }); })).then(function (res) {
       if (league !== state.league) return;
+      state.bracketFailed = failed > 0;
       var seen = {}, all = [];
       res.forEach(function (r) { (r.events || []).forEach(function (ev) { if (!seen[ev.id]) { seen[ev.id] = 1; all.push(parseMatch(ev)); } }); });
       state.bracket = phases.map(function (p) {
@@ -593,9 +602,14 @@
     if (phases.some(function (p) { return p.matches.length; })) {
       $("bkNote").textContent = "Click a tie to open it";
       Bracket.renderKnockout(box, phases, bracketApi());
+    } else if (state.bracketFailed) {
+      $("bkNote").textContent = "";
+      box.appendChild(el("p", "note", "Couldn't load the knockout matches. Trying again shortly."));
+      state.bracketAt = 0;
     } else {
       var first = state.phases && state.phases.find(function (p) { return KNOCKOUT.test(p.label) && !NOT_KNOCKOUT.test(p.label); });
-      $("bkNote").textContent = "Projected from the current table" + (first ? " · knockouts start " + fmtDay.format(new Date(first.start)) : "");
+      var started = first && new Date(first.start) <= Date.now();
+      $("bkNote").textContent = "Projected from the current table" + (first && !started ? " · knockouts start " + fmtDay.format(new Date(first.start)) : "");
       if (state.table.length) Bracket.renderProjection(box, state.table, cfg.projection);
     }
   }
