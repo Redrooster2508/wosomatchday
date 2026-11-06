@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Women's Matchday Hub</title>
+<meta name="description" content="Live scores, match statistics and win probabilities for the WSL, Liga F and NWSL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-title">
+      <span class="eyebrow" id="seasonLabel">Women's football · live</span>
+      <h1>Matchday Hub</h1>
+    </div>
+    <nav class="tabs" aria-label="League">
+      <button type="button" class="tab" data-league="wsl">WSL</button>
+      <button type="button" class="tab" data-league="ligaf">Liga F</button>
+      <button type="button" class="tab" data-league="nwsl">NWSL</button>
+    </nav>
+  </header>
+
+  <div class="toolbar">
+    <div class="datenav">
+      <button type="button" class="btn icon" id="prevDay" aria-label="Previous day">‹</button>
+      <span class="datelabel" id="dateLabel">—</span>
+      <button type="button" class="btn icon" id="nextDay" aria-label="Next day">›</button>
+      <button type="button" class="btn" id="todayBtn">Current matchday</button>
+    </div>
+    <div class="status" id="feedStatus" role="status">Loading…</div>
+  </div>
+
+  <section aria-labelledby="fxH">
+    <div class="sec-head">
+      <h2 id="fxH">Matches</h2>
+      <span class="eyebrow legend"><span class="sw ph"></span>Home win <span class="sw pd"></span>Draw <span class="sw pa"></span>Away win</span>
+    </div>
+    <div class="fixtures" id="fixtures"></div>
+  </section>
+
+  <section class="matchup" id="matchup" aria-labelledby="muH" hidden>
+    <div class="mu-bar">
+      <h2 id="muH">Match centre</h2>
+      <span class="eyebrow" id="muMeta"></span>
+    </div>
+    <div class="mu-grid">
+      <div class="side home" id="sideH"></div>
+      <div class="centre">
+        <div class="probhead"><span class="chip" id="probState">Pre-match</span><span class="eyebrow" id="probSource"></span></div>
+        <div class="big3">
+          <div><span class="l"><span class="sw ph"></span>Home win</span><span class="v num" id="pH">—</span><span class="o num" id="oH"></span></div>
+          <div><span class="l"><span class="sw pd"></span>Draw</span><span class="v num" id="pD">—</span><span class="o num" id="oD"></span></div>
+          <div><span class="l"><span class="sw pa"></span>Away win</span><span class="v num" id="pA">—</span><span class="o num" id="oA"></span></div>
+        </div>
+        <div class="pbar lg" id="bigBar" aria-hidden="true"></div>
+        <div class="compare" id="compare"></div>
+        <div class="xg"><span>Exp. goals <b class="num" id="xgH">—</b></span><span id="scoreNow" class="scorenow num"></span><span><b class="num" id="xgA">—</b> Exp. goals</span></div>
+        <div class="heat-wrap">
+          <div class="heat-cap"><span><strong>Final score probability</strong> · rows home, columns away</span><span>Outlined: most likely</span></div>
+          <div class="heat" id="heat" role="table" aria-label="Final score probability grid"></div>
+        </div>
+        <div class="markets" id="markets"></div>
+      </div>
+      <div class="side away" id="sideA"></div>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel" id="flowPanel">
+        <div class="sec-head"><h3>Win probability by minute</h3><span class="eyebrow">Recomputed from the goal timeline</span></div>
+        <div class="chart" id="flow"></div>
+      </div>
+      <div class="panel">
+        <div class="sec-head"><h3>Match stats</h3><span class="eyebrow" id="statsNote"></span></div>
+        <div id="stats" class="stats"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="sec-head"><h3>Timeline</h3></div>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="tblH">
+    <div class="sec-head"><h2 id="tblH">League table</h2><span class="eyebrow" id="tblNote"></span></div>
+    <div class="tbl-wrap"><table id="table"></table></div>
+    <div class="zones" id="zones"></div>
+  </section>
+
+  <footer class="foot">
+    <h3>How the probabilities work</h3>
+    <p class="note">When bookmaker odds exist, the margin is removed and the implied home and away win chances are fitted to a pair of expected-goal rates. When odds are missing, the rates come from each team's goals scored and conceded per game this season, against the league average, with home advantage. Scorelines follow a Poisson model with the Dixon–Coles low-score correction (ρ = −0.08). During a match, only the time left is simulated, on top of the current score, and a red card cuts that team's scoring rate by a quarter.</p>
+    <p class="note">"Draw" means level after 90 minutes; in a knockout match, such as the NWSL playoffs, the tie then goes to extra time or penalties.</p>
+    <p class="note">Data: ESPN's public scores feed, refreshed every 30 seconds while a match is live. Odds are shown for analysis only. Uploaded team photos stay in your browser.</p>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+<input type="file" id="fileIn" accept="image/*" hidden>
+<script src="model.js"></script>
+<script src="photos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
