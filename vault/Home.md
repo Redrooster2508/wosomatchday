@@ -15,6 +15,8 @@ Live scores, statistics, probabilities and player stats for the WSL, Liga F, NWS
 - [[Player stats database]]
 - [[Bracket]]
 - [[Heatmaps]]
+- [[Season forecast]]
+- [[National teams]]
 - [[Photos and licensing]]
 - [[Testing]]
 - [[Deployment]]

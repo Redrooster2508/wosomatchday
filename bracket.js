@@ -50,7 +50,7 @@
   function tieBox(tie, api) {
     var box = el("button", "bk-tie"); box.type = "button";
     if (tie.live) box.classList.add("live");
-    tie.ids.forEach(function (id) { box.appendChild(teamLine(tie.teams[id], tie, api.seed(id), api)); });
+    tie.ids.forEach(function (id) { box.appendChild(teamLine(tie.teams[id], tie, api.fixedBracket ? api.seed(id) : null, api)); });
     var first = tie.legs[0], meta = el("div", "bk-meta");
     if (tie.live) meta.textContent = "Live";
     else if (tie.done) meta.textContent = tie.legs.length > 1 ? "Aggregate" : (first.detail || "FT");
@@ -103,6 +103,15 @@
     var rounds = phases.map(function (ph) { return { name: ph.label.replace(/^Playoffs\s*-\s*/i, ""), ties: ties(ph.matches) }; });
     var isFixed8 = rounds.length && rounds[0].ties.length === 4 && api.fixedBracket;
     if (isFixed8) rounds[0].ties = orderQuarterTies(rounds[0].ties, api.seed);
+    else {
+      // tournaments: order each round so the two ties feeding a later tie sit next to each other
+      for (var ri = rounds.length - 2; ri >= 0; ri--) {
+        var next = rounds[ri + 1].ties, cur = rounds[ri].ties, ordered = [];
+        next.forEach(function (nt) { cur.forEach(function (t) { if (ordered.indexOf(t) < 0 && t.ids.some(function (id) { return nt.ids.indexOf(id) >= 0; })) ordered.push(t); }); });
+        cur.forEach(function (t) { if (ordered.indexOf(t) < 0) ordered.push(t); });
+        rounds[ri].ties = ordered;
+      }
+    }
     var grid = el("div", "bk-grid"); grid.style.setProperty("--cols", rounds.length);
     rounds.forEach(function (r, ri) {
       var col = el("div", "bk-col"); col.appendChild(el("div", "eyebrow bk-round", r.name));
@@ -128,6 +137,7 @@
     var wrap = el("div", "bk-scroll"); wrap.appendChild(grid); box.appendChild(wrap);
 
     var tc = isFixed8 ? titleChances(rounds, api) : null;
+    if (api.onTitleChances) api.onTitleChances(tc);
     if (tc) {
       var list = el("div", "bk-odds");
       list.appendChild(el("h3", null, "Title chances"));

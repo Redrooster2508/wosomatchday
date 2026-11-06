@@ -10,7 +10,18 @@
       projection: [
         { label: "Straight to quarter-finals", from: 1, to: 4, note: "The top four skip the knockout play-offs." },
         { label: "Knockout play-offs", from: 5, to: 12, note: "5th–8th are seeded against 9th–12th; opponents are decided by the draw." },
-        { label: "Eliminated", from: 13, to: 99, out: true }] }
+        { label: "Eliminated", from: 13, to: 99, out: true }] },
+    // national teams (picked from the "National teams" tab)
+    friendlies: { slug: "fifa.friendly.w", name: "International friendlies", intl: true },
+    wcq: { slug: "fifa.wwcq.ply", name: "World Cup qualifying play-offs", intl: true },
+    wchamp: { slug: "concacaf.womens.championship", name: "Concacaf W Championship", intl: true },
+    wafcon: { slug: "caf.w.nations", name: "Women's Africa Cup of Nations", intl: true },
+    asian: { slug: "afc.w.asian.cup", name: "AFC Women's Asian Cup", intl: true },
+    wwc: { slug: "fifa.wwc", name: "FIFA Women's World Cup", intl: true },
+    weuro: { slug: "uefa.weuro", name: "UEFA Women's Euro", intl: true },
+    copa: { slug: "conmebol.america.femenina", name: "Copa América Femenina", intl: true },
+    olympics: { slug: "fifa.w.olympics", name: "Olympic tournament", intl: true },
+    wnl: { slug: "uefa.w.nations", name: "UEFA Women's Nations League", intl: true }
   };
   var SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/";
   var CORE = "https://site.api.espn.com/apis/v2/sports/soccer/";
@@ -89,14 +100,21 @@
       clock: num(st.clock), displayClock: st.displayClock || "", period: st.period || 0,
       venue: (c.venue && c.venue.fullName) || (ev.venue && ev.venue.fullName) || "", neutral: !!c.neutralSite,
       home: home, away: away, odds: parseOdds(c.odds && c.odds[0]), details: parseDetails(c.details, home.id),
-      note: c.notes && c.notes[0] && c.notes[0].headline || ""
+      note: c.notes && c.notes[0] && c.notes[0].headline || "",
+      round: ev.season && ev.season.slug || ""
     };
     hc && (home.form = hc.form || ""); ac && (away.form = ac.form || "");
     return m;
   }
+  // One table per group for tournaments; a single table for leagues.
   function parseTable(data) {
-    var ch = (data.children && data.children[0]) || data;
-    var entries = (ch.standings && ch.standings.entries) || [];
+    var groups = (data.children && data.children.length ? data.children : [data]).map(function (ch) {
+      return { name: data.children && data.children.length > 1 ? ch.name || ch.abbreviation || "" : "", rows: parseRows((ch.standings && ch.standings.entries) || []) };
+    }).filter(function (g) { return g.rows.length; });
+    var ch0 = (data.children && data.children[0]) || data;
+    return { rows: [].concat.apply([], groups.map(function (g) { return g.rows; })), groups: groups, season: data.name || (ch0 && ch0.name) || "" };
+  }
+  function parseRows(entries) {
     var rows = entries.map(function (e) {
       var s = {}; (e.stats || []).forEach(function (x) { s[x.name] = x.value != null ? x.value : num(x.displayValue); });
       var t = e.team || {};
@@ -107,20 +125,21 @@
       };
     });
     rows.sort(function (a, b) { return (a.rank || 99) - (b.rank || 99) || b.pts - a.pts; });
-    return { rows: rows, season: data.name || (ch && ch.name) || "" };
+    return rows;
   }
 
   /* ---------- probability for one match ---------- */
   function baseRates(m) {
-    var formL = Model.formLambdas(state.table, m.home.id, m.away.id, m.neutral);
+    var intl = LEAGUES[state.league].intl && state.intlForm && state.intlForm.length;
+    var formL = Model.formLambdas(intl ? state.intlForm : state.table, m.home.id, m.away.id, m.neutral);
     var odds = m.odds || (state.summaryFor === m.id && state.summary && state.summary.odds) || null;
     if (odds) {
       var k = m.id + ":" + odds.key;
       if (!fitCache[k]) fitCache[k] = Model.fitLambdas(odds.fair.H, odds.fair.A);
       return { lh: fitCache[k].lh, la: fitCache[k].la, source: odds.provider + " odds, margin removed", market: odds.fair, form: formL };
     }
-    if (formL) return { lh: formL.lh, la: formL.la, source: "Season goals model (no odds listed)", market: null, form: formL };
-    return { lh: 1.35, la: 1.1, source: "League-average rates (no odds or table yet)", market: null, form: null };
+    if (formL) return { lh: formL.lh, la: formL.la, source: intl ? "This year's international results (no odds listed)" : "Season goals model (no odds listed)", market: null, form: formL };
+    return { lh: 1.35, la: 1.1, source: intl ? "League-average rates (not enough international results this year)" : "League-average rates (no odds or table yet)", market: null, form: null };
   }
   function minuteOf(m) {
     if (/HALFTIME/.test(m.statusName)) return 45;
@@ -179,7 +198,8 @@
       [["home", m.home], ["away", m.away]].forEach(function (x) {
         var t = x[1], other = x[0] === "home" ? m.away : m.home, row = el("div", "fx-row");
         if (m.state === "post" && t.score < other.score) row.classList.add("lost");
-        var im = new Image(); im.src = t.logo; im.alt = ""; im.loading = "lazy"; row.appendChild(im);
+        if (t.logo) { var im = new Image(); im.src = t.logo; im.alt = ""; im.loading = "lazy"; row.appendChild(im); }
+        else row.appendChild(el("span", "crest-none", (t.abbr || t.name || "?").slice(0, 3)));
         row.appendChild(el("span", "nm", t.name));
         row.appendChild(el("span", "sc num", m.state === "pre" ? "" : String(t.score)));
         b.appendChild(row);
@@ -429,12 +449,15 @@
   function renderTable() {
     var tb = $("table"); tb.textContent = "";
     var m = state.matches.find(function (x) { return x.id === state.sel; });
+    $("tblH").closest("section").hidden = !state.table.length;
     if (!state.table.length) { $("tblNote").textContent = ""; return; }
     var thead = el("thead"), tr = el("tr");
     [["#", ""], ["Club", "l club"], ["P", ""], ["W", ""], ["D", ""], ["L", ""], ["GF", ""], ["GA", ""], ["GD", ""], ["Pts", ""], ["Scored/gm", "wide"], ["Conceded/gm", "wide"]].forEach(function (c) { tr.appendChild(el("th", c[1], c[0])); });
     thead.appendChild(tr); tb.appendChild(thead);
-    var body = el("tbody"), zones = {};
-    state.table.forEach(function (r) {
+    var body = el("tbody"), zones = {}, groups = state.tableGroups && state.tableGroups.length ? state.tableGroups : [{ name: "", rows: state.table }];
+    groups.forEach(function (g) {
+    if (g.name) { var gr = el("tr", "grp"), gc = el("td", "l grp-name", g.name); gc.colSpan = 12; gr.appendChild(gc); body.appendChild(gr); }
+    g.rows.forEach(function (r) {
       var row = el("tr");
       if (m && r.id === m.home.id) row.className = "sel-h"; else if (m && r.id === m.away.id) row.className = "sel-a";
       var pos = el("td", "pos", String(r.rank));
@@ -449,10 +472,80 @@
       row.appendChild(el("td", "wide", r.gp ? (r.ga / r.gp).toFixed(2) : "—"));
       body.appendChild(row);
     });
+    });
     tb.appendChild(body);
     var zb = $("zones"); zb.textContent = "";
     Object.keys(zones).forEach(function (k) { var s = el("span"), i = el("i"); i.style.background = zones[k]; s.appendChild(i); s.appendChild(document.createTextNode(k)); zb.appendChild(s); });
     $("tblNote").textContent = state.tableSeason || "";
+  }
+
+  /* ---------- national-team strength ---------- */
+  // Goals for and against per game in every international match this year in the player database.
+  function loadIntlForm() {
+    if (state.intlForm) return Promise.resolve();
+    var slugs = Object.keys(LEAGUES).filter(function (k) { return LEAGUES[k].intl; }).map(function (k) { return LEAGUES[k].slug; });
+    return Promise.all(slugs.map(function (sl) { return fetch("data/" + sl + "/matches.json").then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }))
+      .then(function (files) {
+        var rows = {};
+        files.forEach(function (f) {
+          if (!f) return;
+          Object.keys(f.matches).forEach(function (id) {
+            var m = f.matches[id];
+            [[m.home, m.score[0], m.score[1]], [m.away, m.score[1], m.score[0]]].forEach(function (x) {
+              var r = rows[x[0]] = rows[x[0]] || { id: x[0], gp: 0, gf: 0, ga: 0 }; r.gp++; r.gf += x[1]; r.ga += x[2];
+            });
+          });
+        });
+        state.intlForm = Object.keys(rows).map(function (k) { return rows[k]; });
+      });
+  }
+
+  /* ---------- season forecast ---------- */
+  function loadForecast() {
+    var league = state.league, slug = LEAGUES[league].slug;
+    if (state.forecastLeague === league && Date.now() - state.forecastAt < TABLE_MS) return Promise.resolve();
+    return fetch("data/" + slug + "/forecast.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      .then(function (f) { if (league !== state.league) return; state.forecast = f; state.forecastLeague = league; state.forecastAt = Date.now(); });
+  }
+  function pctTxt(p) { return p >= 0.995 ? ">99%" : p > 0 && p < 0.005 ? "<1%" : Math.round(p * 100) + "%"; }
+  function renderForecast() {
+    var card = $("forecastCard"), box = $("forecast"), f = state.forecastLeague === state.league ? state.forecast : null;
+    box.textContent = "";
+    var tc = LEAGUES[state.league].fixedBracket && state.titleChances;
+    if (!f && !tc) { card.hidden = true; return; }
+    card.hidden = false;
+    var list = f ? f.teams.map(function (t) { return { id: t.id, name: t.name, logo: t.logo, p: t.title }; })
+      : Object.keys(tc).map(function (id) { var r = tableRow(id) || {}; return { id: id, name: r.name || id, logo: r.logo, p: tc[id] }; }).sort(function (a, b) { return b.p - a.p; });
+    // headline: the favourite and the nearest challengers
+    var lead = el("div", "fc-lead"), top = list[0];
+    if (top.logo) { var im = new Image(); im.src = top.logo; im.alt = ""; lead.appendChild(im); }
+    var txt = el("div");
+    txt.appendChild(el("span", "eyebrow", tc ? "Predicted champion" : (state.league === "ucl" ? "Predicted to top the league phase" : "Predicted winner")));
+    txt.appendChild(el("b", "fc-name", top.name));
+    txt.appendChild(el("span", "fc-rest", pctTxt(top.p) + " · then " + list.slice(1, 3).map(function (t) { return t.name + " " + pctTxt(t.p); }).join(", ")));
+    lead.appendChild(txt); box.appendChild(lead);
+    if (tc) { $("fcNote").textContent = "From the playoff bracket"; box.appendChild(el("p", "note", "Title chances for every playoff team are in the bracket below.")); return; }
+    $("fcNote").textContent = f.sims.toLocaleString() + " simulations of the " + f.remaining + " fixtures left";
+    var wrap = el("div", "tbl-wrap"), t = el("table", "fc-table"), hr = el("tr");
+    function span(r) { return r.length > 1 ? ord(r[0]) + "–" + ord(r[r.length - 1]) : ord(r[0]); }
+    [["Club", "l"], ["Pts", ""], ["Proj. pts", ""], [state.league === "ucl" ? "Top spot" : "Title", ""]].concat(f.zones.map(function (z) { return [z.name + " (" + span(z.ranks) + ")", ""]; }))
+      .forEach(function (h) { hr.appendChild(el("th", h[1], h[0])); });
+    var thead = el("thead"); thead.appendChild(hr); t.appendChild(thead);
+    var tb = el("tbody");
+    f.teams.slice().sort(function (a, b) { return b.proj - a.proj; }).forEach(function (r) {
+      var tr = el("tr"), tc0 = el("td", "l"), inner = el("span", "tc");
+      if (r.logo) { var im2 = new Image(); im2.src = r.logo; im2.alt = ""; im2.loading = "lazy"; inner.appendChild(im2); }
+      inner.appendChild(el("span", null, r.name)); tc0.appendChild(inner); tr.appendChild(tc0);
+      tr.appendChild(el("td", null, String(r.pts))); tr.appendChild(el("td", null, r.proj.toFixed(0)));
+      [r.title].concat(f.zones.map(function (z) { return r.zones[z.name]; })).forEach(function (p, i) {
+        var td = el("td", "fc-p"), bar = el("span", "fc-bar"), fill = el("i");
+        fill.style.width = (p * 100).toFixed(1) + "%"; if (i > 0 && f.zones[i - 1].color) fill.style.background = f.zones[i - 1].color;
+        bar.appendChild(fill); td.appendChild(bar); td.appendChild(el("span", "num", p ? pctTxt(p) : "–")); tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); box.appendChild(wrap);
+    box.appendChild(el("p", "note", "Each team's strength comes from this season's goals scored and conceded, eased toward average this early in the season and with home advantage. Every remaining fixture is played out " + f.sims.toLocaleString() + " times, allowing for uncertainty in how good each team really is. Zones are the positions marked in ESPN's table. Updated " + new Date(f.updated.replace("Z", ":00Z")).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + "."));
   }
 
   /* ---------- news ---------- */
@@ -508,7 +601,7 @@
     var lg = LEAGUES[state.league];
     if (!force && Date.now() - state.tableAt < TABLE_MS && state.tableLeague === state.league) return Promise.resolve();
     return getJSON(CORE + lg.slug + "/standings").then(function (d) {
-      var t = parseTable(d); state.table = t.rows; state.tableSeason = t.season; state.tableAt = Date.now(); state.tableLeague = state.league;
+      var t = parseTable(d); state.table = t.rows; state.tableGroups = t.groups; state.tableSeason = t.season; state.tableAt = Date.now(); state.tableLeague = state.league;
     }).catch(function () { /* the table is optional; probabilities fall back to odds or league averages */ });
   }
   function loadSummary(id) {
@@ -550,7 +643,7 @@
       }
       var sel = state.matches.find(function (m) { return m.id === state.sel; });
       var needSummary = sel && (state.summaryFor !== sel.id || sel.state === "in" || wasLive[sel.id] !== sel.state);
-      return Promise.all([needSummary ? loadSummary(sel.id) : Promise.resolve(), loadBracket(), loadNews()]).then(function () {
+      return Promise.all([needSummary ? loadSummary(sel.id) : Promise.resolve(), loadBracket(), loadNews(), loadForecast(), LEAGUES[state.league].intl ? loadIntlForm() : null]).then(function () {
         state.loading = false;
         renderAll();
         var live = anyLive();
@@ -563,15 +656,17 @@
     }).then(schedule);
   }
   function renderAll() {
-    $("seasonLabel").textContent = (state.tableSeason || LEAGUES[state.league].name);
+    var intl = !!LEAGUES[state.league].intl;
+    $("seasonLabel").textContent = intl ? LEAGUES[state.league].name : (state.tableSeason || LEAGUES[state.league].name);
     $("dateLabel").textContent = state.day ? fmtDay.format(parseDay(state.day)) : "—";
-    document.querySelectorAll(".tab").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.league === state.league)); });
-    renderFixtures(); renderMatch(); renderTable(); renderBracket(); renderNews();
+    document.querySelectorAll(".tab").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.league === state.league || (intl && b.dataset.league === "intl"))); });
+    $("intlPick").hidden = !intl; $("intlSel").value = state.league;
+    renderFixtures(); renderMatch(); renderTable(); renderBracket(); renderForecast(); renderNews();
     if (state.playersFor !== state.league) { state.playersFor = state.league; Players.mount($("players"), LEAGUES[state.league].slug); }
   }
 
   /* ---------- bracket ---------- */
-  var KNOCKOUT = /playoff|final|knockout|round of/i, NOT_KNOCKOUT = /regular season|league phase/i;
+  var KNOCKOUT = /playoff|final|knockout|round of/i, NOT_KNOCKOUT = /regular season|league phase|group|3rd|third|play-in/i;
   function utcDay(d) { return d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, "0") + String(d.getUTCDate()).padStart(2, "0"); }
   // Matches in each knockout phase. Short phases are read day by day; long ones from the whole year's list.
   function loadBracket() {
@@ -595,9 +690,15 @@
       state.bracketFailed = failed > 0;
       var seen = {}, all = [];
       res.forEach(function (r) { (r.events || []).forEach(function (ev) { if (!seen[ev.id]) { seen[ev.id] = 1; all.push(parseMatch(ev)); } }); });
+      // ESPN tags each match with its round ("quarterfinals", "playoffs---semifinals"); phase dates can overlap
+      function slugify(t) { return String(t).toLowerCase().replace(/[^a-z0-9]/g, "-"); }
+      var tagged = all.some(function (m) { return m.round; });
       state.bracket = phases.map(function (p) {
-        var s = new Date(p.start), e = new Date(p.end);
-        return { label: p.label, start: p.start, matches: all.filter(function (m) { var t = new Date(m.date); return t >= s && t < e; }) };
+        var s = new Date(p.start), e = new Date(p.end), want = slugify(p.label);
+        return { label: p.label, start: p.start, matches: all.filter(function (m) {
+          if (tagged) return m.round === want;
+          var t = new Date(m.date); return t >= s && t < e;
+        }) };
       });
       state.bracketLeague = league; state.bracketAt = Date.now();
     });
@@ -606,6 +707,7 @@
     var cfg = LEAGUES[state.league];
     return {
       fixedBracket: !!cfg.fixedBracket,
+      onTitleChances: function (tc) { state.titleChances = tc; },
       seed: function (id) { var r = tableRow(id); return r ? r.rank : null; },
       team: function (id) {
         var r = tableRow(id); if (r) return r;
@@ -657,8 +759,9 @@
   }
   function setLeague(lg) {
     if (!LEAGUES[lg]) lg = "wsl";
-    state.league = lg; state.date = null; state.calendar = null; state.phases = null; state.bracket = null; state.bracketAt = 0; state.matches = []; state.table = []; state.tableAt = 0; state.sel = null; state.summary = null; state.summaryFor = null;
+    state.league = lg; state.date = null; state.calendar = null; state.phases = null; state.bracket = null; state.bracketAt = 0; state.titleChances = null; state.forecast = null; state.matches = []; state.table = []; state.tableGroups = []; state.tableAt = 0; state.sel = null; state.summary = null; state.summaryFor = null;
     store("wmh-league", lg);
+    if (LEAGUES[lg].intl) store("wmh-intl", lg);
     if (location.hash !== "#" + lg) history.replaceState(null, "", "#" + lg);
     refresh(true);
   }
@@ -691,7 +794,11 @@
 
   /* ---------- events ---------- */
   var uploadFor = null;
-  document.querySelectorAll(".tab").forEach(function (b) { b.addEventListener("click", function () { setLeague(b.dataset.league); }); });
+  document.querySelectorAll(".tab").forEach(function (b) { b.addEventListener("click", function () {
+    setLeague(b.dataset.league === "intl" ? (LEAGUES[store("wmh-intl")] ? store("wmh-intl") : "friendlies") : b.dataset.league);
+  }); });
+  Object.keys(LEAGUES).filter(function (k) { return LEAGUES[k].intl; }).forEach(function (k) { $("intlSel").appendChild(new Option(LEAGUES[k].name, k)); });
+  $("intlSel").addEventListener("change", function (e) { setLeague(e.target.value); });
   $("prevDay").addEventListener("click", function () { shiftDay(-1); });
   $("nextDay").addEventListener("click", function () { shiftDay(1); });
   $("todayBtn").addEventListener("click", function () { state.date = null; state.sel = null; refresh(true); });

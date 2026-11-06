@@ -2,7 +2,11 @@
    a shots-and-goals chart and the match log. Address: player.html?l=<league slug>&id=<ESPN athlete id> */
 (function () {
   "use strict";
-  var LEAGUE_NAMES = { "eng.w.1": ["Women's Super League", "wsl"], "esp.w.1": ["Liga F", "ligaf"], "usa.nwsl": ["NWSL", "nwsl"], "uefa.wchampions": ["Women's Champions League", "ucl"] };
+  var LEAGUE_NAMES = { "eng.w.1": ["Women's Super League", "wsl"], "esp.w.1": ["Liga F", "ligaf"], "usa.nwsl": ["NWSL", "nwsl"], "uefa.wchampions": ["Women's Champions League", "ucl"],
+    "fifa.friendly.w": ["International friendlies", "friendlies"], "fifa.wwcq.ply": ["World Cup qualifying play-offs", "wcq"],
+    "concacaf.womens.championship": ["Concacaf W Championship", "wchamp"], "caf.w.nations": ["Women's Africa Cup of Nations", "wafcon"],
+    "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian"], "fifa.wwc": ["FIFA Women's World Cup", "wwc"], "uefa.weuro": ["UEFA Women's Euro", "weuro"],
+    "conmebol.america.femenina": ["Copa América Femenina", "copa"], "fifa.w.olympics": ["Olympic tournament", "olympics"], "uefa.w.nations": ["UEFA Women's Nations League", "wnl"] };
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }

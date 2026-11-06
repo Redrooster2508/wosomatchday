@@ -9,6 +9,13 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 - `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
 - Recent (2023+) team photo shortlist from Commons and Openverse, under review
 
+## 2026-11-06 · National teams and season forecasts (build 12)
+- **National teams** tab: friendlies, World Cup qualifying play-offs, Concacaf W Championship, Africa Cup of Nations, Asian Cup, plus the World Cup, Euro, Copa América, Olympics and Nations League when active
+- Group tables for tournaments; brackets placed by ESPN's round tags; national teams rated on this year's international results; badges for teams without crests
+- Player stats and heatmaps for international competitions
+- **Season forecast:** predicted winner, title and zone chances, projected points from 10,000 simulations (`tools/build_forecast.py`); NWSL from the playoff bracket
+- Scheduled workflow now also builds forecasts (still to be added on GitHub)
+
 ## 2026-11-06 · Self-refreshing pages (build 11)
 - Pages compare their build number with `version.json` and refresh once when the site has been updated. A user still saw the old blank heatmap from a cached page after the fix went live.
 

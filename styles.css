@@ -378,3 +378,23 @@ td img{max-width:none}
 .hm-key.off{border:2px solid var(--k);background:transparent}
 .hm-key.blocked{border-radius:0;background:linear-gradient(45deg,transparent 42%,var(--k) 42% 58%,transparent 58%),linear-gradient(-45deg,transparent 42%,var(--k) 42% 58%,transparent 58%)}
 @media (max-width:760px){.hm-grid{grid-template-columns:1fr}}
+
+/* national teams */
+.intl-pick{display:flex;align-items:center;gap:8px;font-family:var(--f-data);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);flex-basis:100%}
+.intl-pick select{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-size:14px;color:var(--ink)}
+tr.grp td{background:var(--sunk);border-bottom:2px solid var(--ink);padding-top:14px}
+td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.02em}
+.tabs{flex-wrap:wrap}
+.crest-none{width:28px;height:28px;border-radius:50%;background:var(--sunk);color:var(--muted);display:grid;place-items:center;font-family:var(--f-data);font-size:9px;font-weight:500}
+
+/* season forecast */
+.fc-lead{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.fc-lead img{width:64px;height:64px;object-fit:contain}
+.fc-lead>div{display:grid;gap:2px}
+.fc-name{font-family:var(--f-display);font-weight:800;font-size:clamp(32px,5vw,48px);text-transform:uppercase;line-height:.95}
+.fc-rest{font-family:var(--f-data);font-size:13px;color:var(--muted)}
+.fc-table{min-width:680px}
+.fc-table td.fc-p{min-width:110px}
+.fc-p{white-space:nowrap}
+.fc-bar{display:inline-block;width:64px;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:8px}
+.fc-bar i{display:block;height:100%;background:var(--seq)}

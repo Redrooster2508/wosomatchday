@@ -22,7 +22,10 @@ from datetime import datetime, timezone
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/"
-LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions"]
+LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions",
+           # national teams
+           "fifa.friendly.w", "fifa.wwcq.ply", "concacaf.womens.championship", "caf.w.nations", "afc.w.asian.cup",
+           "fifa.wwc", "uefa.weuro", "conmebol.america.femenina", "fifa.w.olympics", "uefa.w.nations"]
 UA = "WomensMatchdayHub/1.0 (https://github.com/Redrooster2508/wosomatchday)"
 # match-sheet abbreviations kept per player line, in this order
 STATS = ["G", "A", "SHOT", "SOG", "SV", "GA", "YC", "RC", "FC", "FA", "OG"]
@@ -107,6 +110,8 @@ def build(slug, rebuild=False):
     mpath, ppath = os.path.join(folder, "matches.json"), os.path.join(folder, "players.json")
     matches = {} if rebuild or not os.path.exists(mpath) else json.load(open(mpath)).get("matches", {})
     season, events = season_events(slug)
+    if not events and not matches:
+        print(f"{slug}: no finished matches this season yet"); return
     todo = [e for e in events if e["id"] not in matches]
     print(f"{slug}: {len(events)} finished matches, {len(todo)} new", flush=True)
     with ThreadPoolExecutor(6) as pool:

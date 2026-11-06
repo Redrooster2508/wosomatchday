@@ -1,6 +1,6 @@
 # Women's Matchday Hub
 
-Live scores, match statistics, win probabilities and player stats for the **WSL**, **Liga F**, **NWSL** and **Women's Champions League**.
+Live scores, match statistics, win probabilities, season forecasts and player stats for the **WSL**, **Liga F**, **NWSL**, **Women's Champions League** and **national teams** (friendlies, World Cup qualifying, Concacaf W Championship, Africa Cup of Nations, Asian Cup, and the World Cup, Euro, Copa América and Olympics when they're on).
 
 **Live site:** https://redrooster2508.github.io/wosomatchday/ (add `#wsl`, `#ligaf`, `#nwsl` or `#ucl` to open one competition)
 
@@ -15,6 +15,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 | Matches | Each match on the selected matchday: live score and clock, plus a home/draw/away probability bar. The arrows jump between matchdays. Times are in the viewer's own time zone, which is named on the page. |
 | Match centre | Team photos with crests; win, draw and loss chances with fair odds; expected goals; a final-score probability grid; over/under, both teams to score and clean sheets; win probability by minute; match stats; **touch heatmap** for either team or any player and a **shot map**, updating every minute while live; line-ups with each player's numbers; the event timeline |
 | News | The five latest ESPN stories for the competition |
+| Season forecast | Predicted winner and each team's chance of the title and each table zone, from 10,000 simulations of the remaining fixtures (NWSL: from the playoff bracket) |
 | Bracket | NWSL playoffs with title chances worked out through the bracket. Champions League knockouts, projected from the league-phase table until they start. |
 | League table | Standings with qualification and relegation zones, goals scored and conceded per game |
 | Player stats | Season table for every player: search, club and position filters, sortable columns |
@@ -27,6 +28,7 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 | `index.html`, `styles.css` | The hub page and all styles (light and dark themes) |
 | `app.js` | Loads the feed, polls during live matches, renders the hub |
 | `model.js` | Probability model: pure functions, testable without a browser |
+| `tools/build_forecast.py` | Season forecasts (`data/<league>/forecast.json`) |
 | `bracket.js` | Knockout bracket, title chances, pre-knockout projection |
 | `players.js` | Player stats table and match-centre line-ups |
 | `heat.js` | Pitch drawing, touch heatmaps and shot maps from play-by-play |
@@ -43,7 +45,9 @@ Project notes, decisions and the change log are in the Obsidian vault in [`vault
 2. **Form rates.** When odds are missing (common in Liga F), the rates come from goals scored and conceded per game against the league average. They're shrunk toward average early in the season and include home advantage.
 3. **Scorelines.** Poisson goals with the Dixon–Coles low-score correction (ρ = −0.08).
 4. **In play.** Only the time left is simulated, on top of the current score, assuming 96 minutes including stoppage time. A red card cuts that side's rate by 25% and raises the opponent's by 15%.
-5. **Brackets.** Title chances combine each tie's chance to advance through the bracket. A level score after 90 minutes is split by relative strength.
+5. **Season forecasts.** `tools/build_forecast.py` plays out every remaining fixture 10,000 times. Team strength comes from this season's goals, eased toward average by 8 games' worth of league-average form, with home advantage and a per-simulation strength spread (σ = 0.15 on a log scale) to allow for uncertainty.
+6. **National teams.** Most friendlies have no odds, so teams are rated on goals for and against in every international match this year in the database.
+7. **Brackets.** Title chances combine each tie's chance to advance through the bracket. A level score after 90 minutes is split by relative strength.
 
 "Draw" always means level after 90 minutes.
 

@@ -23,7 +23,10 @@ from datetime import datetime
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 CORE = "https://sports.core.api.espn.com/v2/sports/soccer/leagues/"
-LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions"]
+LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions",
+           # national teams
+           "fifa.friendly.w", "fifa.wwcq.ply", "concacaf.womens.championship", "caf.w.nations", "afc.w.asian.cup",
+           "fifa.wwc", "uefa.weuro", "conmebol.america.femenina", "fifa.w.olympics", "uefa.w.nations"]
 UA = "WomensMatchdayHub/1.0 (https://github.com/Redrooster2508/wosomatchday)"
 GX, GY = 24, 16
 SKIP = re.compile(r"^(Substitution|Start Delay|End Delay|Halftime|Start 2nd Half|End Regular Time|Kickoff|Out|Corner Awarded|Drop of Ball|Assist|Assists Shot|End Extra Time|Start Extra Time)$", re.I)
