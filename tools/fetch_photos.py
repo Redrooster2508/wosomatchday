@@ -18,6 +18,7 @@ import html, json, os, re, sys, time, urllib.parse, urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PHOTOS = os.path.join(ROOT, "photos")
 MANIFEST = os.path.join(PHOTOS, "manifest.json")
+SINCE = 2023  # photos taken before this year show old squads and kits
 UA = "WomensMatchdayHub/1.0 (https://github.com/Redrooster2508/wosomatchday)"
 LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions"]
 OK_LICENCE = re.compile(r"^(cc[ -]by(-sa)?([ -][\d.]+)?|cc0|public domain|pd)", re.I)
@@ -171,9 +172,13 @@ def pick(man, choices):
         page = next(iter(json.loads(get("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(p)))["query"]["pages"].values()))
         if "imageinfo" not in page:
             print(f"  not found  {title}"); continue
-        lic = plain(page["imageinfo"][0].get("extmetadata", {}).get("LicenseShortName", {}).get("value"))
+        meta = page["imageinfo"][0].get("extmetadata", {})
+        lic = plain(meta.get("LicenseShortName", {}).get("value"))
         if not OK_LICENCE.search(lic):
             print(f"  refused (licence {lic!r})  {title}"); continue
+        years = [int(y) for y in re.findall(r"(?<!\d)(20[0-3]\d)(?!\d)", plain(meta.get("DateTimeOriginal", {}).get("value")) or title)]
+        if not years or max(years) < SINCE:
+            print(f"  refused (taken {max(years) if years else 'on an unknown date'}, before {SINCE})  {title}"); continue
         save(man, tid, names.get(tid, tid), page)
         print(f"  saved  {names.get(tid, tid):<26} {title[:70]}")
         time.sleep(0.3)

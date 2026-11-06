@@ -47,6 +47,9 @@
     chart(log, gk);
     table(log, M);
     profile(p, team);
+    getJSON("data/" + slug + "/heat.json").then(function (h) {
+      Heat.seasonPanel($("pHeat"), h.players[p.id], h.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
+    }).catch(function () { $("pHeat").appendChild(el("p", "note", "Heatmaps for this competition haven't been built yet.")); });
   }).catch(function () { $("pName").textContent = "Player stats for this competition haven't been built yet."; });
 
   function facts(list) {

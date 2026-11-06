@@ -22,6 +22,7 @@ Unofficial and undocumented, so fields can change without notice.
 | League table | `site.api.espn.com/apis/v2/sports/soccer/<slug>/standings` |
 | News | `…/<slug>/news` |
 | Season goal and assist leaders | `…/<slug>/statistics` |
+| Play-by-play with pitch coordinates | `sports.core.api.espn.com/v2/sports/soccer/leagues/<slug>/events/<id>/competitions/<id>/plays?limit=1000&page=N` |
 | Player profile | `site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/<id>` |
 
 ## Quirks found
@@ -32,4 +33,6 @@ Unofficial and undocumented, so fields can change without notice.
 - **No women's headshots.** `a.espncdn.com/i/headshots/soccer/players/full/<id>.png` returns 404 for women players. See [[Photos and licensing]].
 - **Own goals.** In the scoreboard's event list the credited side isn't reliable, so the timeline replay flips own goals if the replayed score doesn't match the real one.
 - **Season leaders text.** `displayValue` reads like `Matches: 6, Goals: 6`; the last number is the stat.
+- **Event type names overlap.** "Goal Kick" starts with "Goal"; match exact names. See [[Heatmaps]].
+- **Play-by-play paging:** `limit=1000` works, so 2 pages per match.
 - **No expected-goals (xG) data.** The feed has no xG, so probabilities come from odds or goals.

@@ -14,4 +14,6 @@ tags: [decisions]
 | 2026-11-06 | Photos **reviewed by eye** | Automatic matching picked wrong teams |
 | 2026-11-06 | **Player database as JSON in the repository**, scheduled rebuild | Keeps the site static; fast loads; incremental updates |
 | 2026-11-06 | Player portraits from **Wikidata / Commons** | ESPN has no women's headshots; Commons gives licence and credit data |
+| 2026-11-06 | Team photos only from **2023 or later** | The user found a 2016 photo; old photos show old squads and kits |
+| 2026-11-06 | Heatmaps from **ESPN play-by-play coordinates** | About 1,500 located events per match, free and live; season grids stored per player |
 | 2026-11-06 | **Version tags** on CSS and JS | Pages caches for 10 minutes; stale CSS hid a fix from the user |

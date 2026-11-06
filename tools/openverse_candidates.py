@@ -18,7 +18,7 @@ import json, os, re, sys, time, urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_photos import NAMES, BAD, WOMEN, WOMEN_ONLY, get, teams  # noqa: E402
-from photo_candidates import OUT, TEAMISH, YEAR, club_words  # noqa: E402
+from photo_candidates import OUT, SINCE, TEAMISH, YEAR, club_words  # noqa: E402
 
 LICENCES = "by,by-sa,cc0,pdm,by-nc,by-nc-sa"
 
@@ -40,13 +40,15 @@ def judge(r, t, words):
     s, why = 1, []
     if TEAMISH.search(r.get("title") or ""):
         s += 5; why.append("team")
+    # Openverse has no capture date, so the title or tags must name a recent year
     years = [int(y) for y in YEAR.findall(text)]
-    if years:
-        y = max(years); s += 3 if y >= 2023 else 1 if y >= 2019 else -2; why.append(str(y))
+    if not years or max(years) < SINCE:
+        return None
+    y = max(years); s += 4 if y >= 2025 else 2; why.append(str(y))
     w, h = r.get("width") or 0, r.get("height") or 1
     if 1.25 <= w / h <= 2.2:
         s += 1
-    return s, ",".join(why)
+    return s, ",".join(why), y
 
 
 def main():
@@ -62,7 +64,7 @@ def main():
         names = NAMES.get(t["id"]) or [t["name"]]
         women = "" if (t["league"] == "usa.nwsl" or t["id"] in WOMEN_ONLY) else (" femenino" if t["league"] == "esp.w.1" else " women")
         found = {}
-        for q in [f"{names[0]}{women} team", f"{names[0]}{women}", f"{t['name']}{women} football"]:
+        for q in [f"{names[0]}{women} team", f"{names[0]}{women} 2025", f"{names[0]}{women} 2026", f"{t['name']}{women} football"]:
             try:
                 res = search(q)
             except Exception as e:
@@ -74,7 +76,7 @@ def main():
             time.sleep(1.2)  # stay well inside the anonymous rate limit
         best = sorted(found.values(), key=lambda x: -x[0][0])[:6]
         entry["candidates"] = [c for c in entry["candidates"] if c.get("provider") != "openverse"] + [{
-            "provider": "openverse", "id": "ov:" + r["id"], "title": r.get("title") or "", "score": j[0], "why": j[1],
+            "provider": "openverse", "id": "ov:" + r["id"], "title": r.get("title") or "", "score": j[0], "why": j[1], "year": j[2],
             "licence": f"CC {r.get('license', '').upper()} {r.get('license_version') or ''}".strip().replace("CC CC0", "CC0").replace("CC PDM", "Public domain"),
             "creator": r.get("creator") or "", "site": r.get("source") or r.get("provider") or "", "landing": r.get("foreign_landing_url") or "",
             "thumb": r.get("thumbnail"), "size": [r.get("width"), r.get("height")]} for j, r in best]

@@ -8,6 +8,11 @@ Only freely licensed images: CC BY, CC BY-SA, CC0, public domain, plus CC BY-NC 
 
 Crediting a photographer does **not** make a copyrighted photo free to use, so club, agency and news photos are not used. See [[Decisions]].
 
+## Recency
+Team photos must be from **2023 or later**: the camera's recorded date (`DateTimeOriginal`) or, failing that, a year in the title. Openverse results have no capture date, so their title or tags must name the year. Older photos show old squads and kits.
+
+Audit on 2026-11-06: only 9 of 26 photos qualified. 17 were removed (PSG and Espanyol 2012, Seattle 2014, Arsenal and West Ham 2016, through Real Madrid, Madrid CFF and Real Sociedad 2021).
+
 ## Team photos
 Shown in this order:
 1. A viewer's own upload, kept only in their browser

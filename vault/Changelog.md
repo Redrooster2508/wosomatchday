@@ -6,8 +6,15 @@ tags: [log]
 Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]].
 
 ## Unreleased (local, not pushed)
-- `.github/workflows/players.yml`: scheduled player stats rebuild, refused by GitHub (the token has no `workflow` scope)
-- Team photo shortlist from Commons and Openverse, under review
+- `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
+- Recent (2023+) team photo shortlist from Commons and Openverse, under review
+
+## 2026-11-06 · Heatmaps; old photos removed
+- **Match centre:** touch heatmap for either team or any player, and a shot map with both teams, refreshed every minute while live (`heat.js`)
+- **Player pages:** season heatmap and shot map from `data/<league>/heat.json`, built by `tools/build_heat.py` (incremental)
+- **Photos:** 17 team photos taken before 2023 removed (9 remain). The photo tools now refuse photos from before 2023.
+- Fix: goal kicks were counted as goals in shot maps
+- Fix: the heatmap panel shared an id with the score grid
 
 ## 2026-11-06 · `dba68e8` · Documentation
 - README rewritten: features, files, model, database, photos, publishing

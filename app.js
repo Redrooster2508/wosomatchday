@@ -287,6 +287,9 @@
     renderFlow(m, p);
     renderStats(m);
     Players.lineups($("lineups"), state.summaryFor === m.id && state.summary ? state.summary.raw : null, m, LEAGUES[state.league].slug);
+    var roster = {};
+    ((state.summaryFor === m.id && state.summary && state.summary.raw.rosters) || []).forEach(function (r) { (r.roster || []).forEach(function (p) { if (p.athlete) roster[String(p.athlete.id)] = p.athlete.displayName; }); });
+    Heat.matchPanel($("pitchHeat"), { slug: LEAGUES[state.league].slug, match: m, roster: roster, live: m.state === "in", tip: function (e, t) { if (e) showTip(e, t); else hideTip(); } });
     renderTimeline(m);
   }
   function renderHeat(m, o, live) {

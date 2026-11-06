@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_photos import NAMES, OK_LICENCE, BAD, WOMEN, WOMEN_ONLY, get, plain, teams  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "candidates.json")
+SINCE = 2023  # only photos taken in this year or later: older photos show old squads and kits
 TEAMISH = re.compile(r"(team photo|team picture|team portrait|squad|line-?up|lining up|starting (xi|eleven|11)|\bxi\b|starting lineup|"
                      r"mannschaft|teamfoto|once inicial|alineaci|plantilla|equipo titular|onze|composition|formazione|\bteam\b|\bequip|\bequipo)", re.I)
 SPLIT = re.compile(r"\s(?:v|vs\.?|versus|against|contra|gegen|-|–)\s", re.I)
@@ -42,6 +43,7 @@ def query_list(t):
     for n in names[:2]:
         women = "" if (lg == "usa.nwsl" or t["id"] in WOMEN_ONLY or WOMEN.search(n)) else (" femenino" if lg == "esp.w.1" else " women")
         qs += [f'"{n}"{women} team photo', f'"{n}"{women} starting XI', f'"{n}"{women} line up', f'{n}{women} squad']
+        qs += [f"{n}{women} {y}" for y in (2026, 2025, 2024)]
         if lg == "esp.w.1":
             qs += [f"{n} femenino once inicial", f"{n} femenino equipo"]
         if t["id"] in ("20103", "131643"):
@@ -100,16 +102,19 @@ def judge(page, t, words, from_cat):
         s -= 1; why.append("match")
     if from_cat:
         s += 2; why.append("category")
-    years = [int(y) for y in YEAR.findall(title + " " + plain(meta.get("DateTimeOriginal", {}).get("value")))]
-    if years:
-        y = max(years)
-        s += 3 if y >= 2023 else 1 if y >= 2019 else -2
-        why.append(str(y))
+    # the year it was taken: the camera's date if recorded, otherwise a year in the title
+    taken = YEAR.findall(plain(meta.get("DateTimeOriginal", {}).get("value")))
+    years = [int(y) for y in (taken or YEAR.findall(title))]
+    if not years or max(years) < SINCE:
+        return None
+    y = max(years)
+    s += 4 if y >= 2025 else 2
+    why.append(str(y))
     if 1.25 <= w / max(h, 1) <= 2.2:
         s += 1
     if w >= 2000:
         s += 1
-    return s, lic, ",".join(why)
+    return s, lic, ",".join(why), y
 
 
 def main():
@@ -142,7 +147,7 @@ def main():
             time.sleep(0.3)
         best = sorted(found.values(), key=lambda x: -x[0][0])[:6]
         data[t["id"]] = {"team": t["name"], "league": t["league"], "categories": cats, "candidates": [
-            {"title": p["title"], "score": r[0], "why": r[2], "licence": r[1], "thumb": p["imageinfo"][0].get("thumburl"),
+            {"title": p["title"], "score": r[0], "why": r[2], "year": r[3], "licence": r[1], "thumb": p["imageinfo"][0].get("thumburl"),
              "size": [p["imageinfo"][0].get("width"), p["imageinfo"][0].get("height")]} for r, p in best]}
         print(f"  {t['name']:<26} {len(found):>3} found  best: {best[0][0][0] if best else '-':>3} {best[0][1]['title'][:60] if best else ''}", flush=True)
         with open(OUT, "w") as f:
