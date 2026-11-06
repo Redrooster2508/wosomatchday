@@ -100,7 +100,7 @@ python3 -m http.server 8000
 
 ## Publishing
 
-GitHub Pages serves the `main` branch root. CSS and JS links carry a version tag (`?v=10`). Raise it when those files change, so browsers don't keep a cached copy for up to 10 minutes.
+GitHub Pages serves the `main` branch root and lets browsers cache files for 10 minutes. On each release, raise the build number in three places: the `?v=` tags on CSS and JS links, the number at the end of the version-check script in `index.html` and `player.html`, and `version.json`. Pages that find a newer `version.json` reload themselves once.
 
 ## Data
 

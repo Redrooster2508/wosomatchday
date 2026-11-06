@@ -9,6 +9,9 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 - `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
 - Recent (2023+) team photo shortlist from Commons and Openverse, under review
 
+## 2026-11-06 · Self-refreshing pages (build 11)
+- Pages compare their build number with `version.json` and refresh once when the site has been updated. A user still saw the old blank heatmap from a cached page after the fix went live.
+
 ## 2026-11-06 · Firefox heatmap fix, recent portraits, measurements, time zones
 - Heatmaps are now drawn as blurred SVG instead of canvas pixels. Firefox's fingerprinting protection can blank canvas pixel data; SVG renders in every browser and follows the theme.
 - NWSL season heatmaps built
