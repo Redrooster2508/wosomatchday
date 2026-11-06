@@ -120,6 +120,8 @@ def build(slug, rebuild=False):
                 matches[ev["id"]] = res
     keep = {e["id"] for e in events}
     matches = {k: v for k, v in matches.items() if k in keep}  # drop matches from earlier seasons
+    if not todo and len(matches) == len([m for m in matches if m in {e["id"] for e in events}]) and os.path.exists(ppath):
+        print("  no new matches; files left as they are"); return
     players, teams = totals(matches)
     for ev in events:  # club colours, for player badges
         for c in ev["competitions"][0]["competitors"]:

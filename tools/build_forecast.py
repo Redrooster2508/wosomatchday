@@ -131,7 +131,13 @@ def build(slug):
                     "zones": {z["name"]: round(sum(dist[r - 1] for r in z["ranks"] if 0 < r <= n), 4) for z in zl}})
     out.sort(key=lambda t: (-t["title"], -t["proj"]))
     os.makedirs(os.path.join(DATA, slug), exist_ok=True)
-    with open(os.path.join(DATA, slug, "forecast.json"), "w") as f:
+    path = os.path.join(DATA, slug, "forecast.json")
+    played = sum(1 for e in events.values() if e["status"]["type"].get("completed"))
+    if os.path.exists(path):
+        old = json.load(open(path))
+        if old.get("played") == played and old.get("remaining") == len(remaining):
+            print(f"{slug}: no new results; forecast left as it is"); return
+    with open(path, "w") as f:
         json.dump({"updated": now.strftime("%Y-%m-%dT%H:%MZ"), "sims": SIMS, "remaining": len(remaining), "played": sum(1 for e in events.values() if e["status"]["type"].get("completed")),
                    "season": season.get("displayName") or "", "zones": zl, "teams": out}, f, separators=(",", ":"), ensure_ascii=False)
     top = out[0]

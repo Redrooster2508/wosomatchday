@@ -69,7 +69,7 @@ python3 tools/build_players.py --rebuild    # read every match again
 python3 tools/build_heat.py                 # season heatmaps (after build_players)
 ```
 
-**Automatic updates:** the workflow file `.github/workflows/players.yml` runs both scripts every three hours and commits any changes. It is not in the repository yet, because the access token used to push can't add workflows. Add it through GitHub's web editor (**Add file → Create new file**), or give the token the `workflow` scope.
+**Automatic updates:** the **Update player stats** workflow (`.github/workflows/players.yml`) runs every three hours: it rebuilds player stats, heatmaps and forecasts, and commits only if something changed. Run it by hand from the repository's **Actions** tab.
 
 ## Photos
 

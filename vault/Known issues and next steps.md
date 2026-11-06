@@ -4,7 +4,7 @@ tags: [todo]
 # Known issues and next steps
 
 ## Open
-- [ ] **Add the scheduled workflow** `.github/workflows/players.yml` on GitHub (the token lacks the `workflow` scope). See [[Deployment]].
+- [x] Scheduled workflow added on GitHub (2026-11-06); first run succeeded. See [[Deployment]].
 - [ ] **Team photo review:** pick the best photos from the Commons and Openverse shortlist (59 clubs, 361 candidates). 10 clubs have no candidates: Tenerife, Dux Logroño, Alavés, Boston Legacy, Racing Louisville, Juventus, HB Køge, Benfica, Servette, OH Leuven.
 - [ ] **Recent team photos:** 17 old photos were removed; finding 2023+ replacements is in progress. See [[Photos and licensing]].
 - [ ] Some kept photos are action shots or single players rather than squad photos.

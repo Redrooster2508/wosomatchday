@@ -6,8 +6,11 @@ tags: [log]
 Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]].
 
 ## Unreleased (local, not pushed)
-- `.github/workflows/players.yml`: scheduled rebuild of player stats and heatmaps, refused by GitHub (the token has no `workflow` scope)
 - Recent (2023+) team photo shortlist from Commons and Openverse, under review
+
+## 2026-11-06 · `a347ee4` / `d15e239` · Scheduled updates live
+- The user added `.github/workflows/players.yml` on GitHub; its first run committed fresh data
+- The builders now skip writing when nothing changed, so there are no empty commits every three hours
 
 ## 2026-11-06 · National teams and season forecasts (build 12)
 - **National teams** tab: friendlies, World Cup qualifying play-offs, Concacaf W Championship, Africa Cup of Nations, Asian Cup, plus the World Cup, Euro, Copa América, Olympics and Nations League when active

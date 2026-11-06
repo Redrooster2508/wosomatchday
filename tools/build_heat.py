@@ -102,6 +102,8 @@ def build(slug, rebuild=False):
     done = set(heat["done"]) & set(matches)  # matches dropped from the season are forgotten on --rebuild
     todo = [m for m in matches if m not in done]
     print(f"{slug}: {len(matches)} matches, {len(todo)} new", flush=True)
+    if not todo and os.path.exists(hfile):
+        print("  nothing new; file left as it is"); return
     with ThreadPoolExecutor(6) as pool:
         for mid, res in zip(todo, pool.map(lambda m: safe(slug, m), todo)):
             if res is None:

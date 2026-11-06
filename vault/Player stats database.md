@@ -25,7 +25,7 @@ Built by `tools/build_players.py` from ESPN match sheets ([[Data sources (ESPN)]
 | Champions League | 355 | 27 | ~190 KB |
 
 ## Keeping it current
-`.github/workflows/players.yml` runs the builder every three hours and commits changes. **Not pushed yet**: the access token lacks the `workflow` scope. See [[Known issues and next steps]].
+`.github/workflows/players.yml` runs the player, heatmap and forecast builders every three hours and commits only real changes. **Live since 2026-11-06**; the first run succeeded. See [[Deployment]].
 
 ## Used by
 - Player table on the hub (`players.js`)
