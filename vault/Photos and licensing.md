@@ -13,6 +13,13 @@ Team photos must be from **2023 or later**: the camera's recorded date (`DateTim
 
 Audit on 2026-11-06: only 9 of 26 photos qualified. 17 were removed (PSG and Espanyol 2012, Seattle 2014, Arsenal and West Ham 2016, through Real Madrid, Madrid CFF and Real Sociedad 2021).
 
+## Recent photo review (2026-11-06)
+The searches gave 200 candidates from 2023 on, for 37 of 59 clubs. All were reviewed by eye on contact sheets. **24 picked**, for **29 clubs with photos** in total (2023–2026), mostly squad photos, line-ups and celebrations.
+
+**Rejected:** a Pride parade and a Birmingham player (Man City); trophies and stadium shots (Arsenal, Aston Villa); a 1909 team photo uploaded recently (Badalona); basketball and sailing (Valencia); cricket and an unrelated tournament (Inter); a distant final (Paris FC); a wreath ceremony (NC Courage); a musician (Orlando).
+
+**Still on illustrations (30 clubs):** among them Arsenal, Man City, Aston Villa, Tottenham, Liverpool, Everton, West Ham, Real Madrid, Lyon, PSG and most of Liga F, where no free photo from 2023 on was found.
+
 ## Team photos
 Shown in this order:
 1. A viewer's own upload, kept only in their browser

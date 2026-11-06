@@ -6,7 +6,7 @@ tags: [todo]
 ## Open
 - [x] Scheduled workflow added on GitHub (2026-11-06); first run succeeded. See [[Deployment]].
 - [ ] **Team photo review:** pick the best photos from the Commons and Openverse shortlist (59 clubs, 361 candidates). 10 clubs have no candidates: Tenerife, Dux Logroño, Alavés, Boston Legacy, Racing Louisville, Juventus, HB Køge, Benfica, Servette, OH Leuven.
-- [ ] **Recent team photos:** 17 old photos were removed; finding 2023+ replacements is in progress. See [[Photos and licensing]].
+- [x] Recent team photos: 29 clubs have photos from 2023 on. 30 still use the illustration because no free recent photo exists (Arsenal, Man City, Lyon, PSG, most of Liga F...). See [[Photos and licensing]].
 - [ ] Some kept photos are action shots or single players rather than squad photos.
 - [ ] Play-by-play goal counts can differ from the match sheet (Russo, Champions League: 4 vs 3). See [[Heatmaps]].
 - [ ] NWSL whole-year scoreboard is about 2.5 MB; the builder and bracket avoid it where they can.

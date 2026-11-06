@@ -6,7 +6,9 @@ tags: [log]
 Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]].
 
 ## Unreleased (local, not pushed)
-- Recent (2023+) team photo shortlist from Commons and Openverse, under review
+
+## 2026-11-06 · Recent team photos
+- 24 team photos from 2023–2026 picked by eye from 200 candidates (Commons and Openverse), with credits. 29 clubs now have a recent photo; the rest keep the illustration.
 
 ## 2026-11-06 · `a347ee4` / `d15e239` · Scheduled updates live
 - The user added `.github/workflows/players.yml` on GitHub; its first run committed fresh data
