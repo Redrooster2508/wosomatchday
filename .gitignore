@@ -1,2 +1,4 @@
 __pycache__/
 tools/candidates.json
+vault/.obsidian/workspace*.json
+vault/.obsidian/cache

@@ -1,0 +1,35 @@
+---
+tags: [data, espn]
+---
+# Data sources (ESPN)
+
+Unofficial and undocumented, so fields can change without notice.
+
+## Leagues
+| Site key | ESPN slug |
+|---|---|
+| `wsl` | `eng.w.1` |
+| `ligaf` | `esp.w.1` |
+| `nwsl` | `usa.nwsl` |
+| `ucl` | `uefa.wchampions` |
+
+## Endpoints used
+| Purpose | URL |
+|---|---|
+| Matches for a day | `site.api.espn.com/apis/site/v2/sports/soccer/<slug>/scoreboard?dates=YYYYMMDD` |
+| Whole year of matches | `…/scoreboard?dates=YYYY&limit=1000` |
+| Match detail: stats, line-ups, events, odds | `…/summary?event=<id>` |
+| League table | `site.api.espn.com/apis/v2/sports/soccer/<slug>/standings` |
+| News | `…/<slug>/news` |
+| Season goal and assist leaders | `…/<slug>/statistics` |
+| Player profile | `site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/<id>` |
+
+## Quirks found
+- **Date ranges fail.** `dates=YYYYMMDD-YYYYMMDD` returns HTTP 400. Use single days or a whole year (`dates=2026`).
+- **Fixture calendars differ.** WSL and Liga F list every match date (`calendarType: day`). NWSL and the Champions League only list phases (`calendarType: list`), so the date arrows scan ahead a week at a time.
+- **Headless browsers are blocked.** Requests from headless Chrome get 403 with no CORS headers. Real browsers are fine. See [[Testing]].
+- **Odds are patchy.** WSL, NWSL and Champions League matches usually carry DraftKings moneylines; Liga F often has none, so the [[Probability model]] falls back to season goals.
+- **No women's headshots.** `a.espncdn.com/i/headshots/soccer/players/full/<id>.png` returns 404 for women players. See [[Photos and licensing]].
+- **Own goals.** In the scoreboard's event list the credited side isn't reliable, so the timeline replay flips own goals if the replayed score doesn't match the real one.
+- **Season leaders text.** `displayValue` reads like `Matches: 6, Goals: 6`; the last number is the stat.
+- **No expected-goals (xG) data.** The feed has no xG, so probabilities come from odds or goals.

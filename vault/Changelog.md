@@ -1,0 +1,52 @@
+---
+tags: [log]
+---
+# Changelog
+
+Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]].
+
+## Unreleased (local, not pushed)
+- `.github/workflows/players.yml`: scheduled player stats rebuild, refused by GitHub (the token has no `workflow` scope)
+- Team photo shortlist from Commons and Openverse, under review
+- README rewritten; this vault added
+
+## 2026-11-06 13:09 · `8199aba` · News, player stats, player pages
+- News: five latest ESPN stories per competition, newest as a lead story
+- Player stats database: `data/<league>/players.json` and `matches.json`, built by `tools/build_players.py` (incremental)
+- Player table: search, club and position filters, sortable columns
+- Player pages: Wikidata/Commons portrait with credit, ESPN profile, season numbers, league percentiles, per-match chart (goalkeepers get saves and goals conceded), match log
+- Match-centre line-ups with each player's goals, assists, shots, saves and cards
+- Photo tools: Commons and Openverse shortlists, `--pick` with full credit
+- Fix: logos in table cells were sized as 0px wide, so text overlapped the next column
+- Fix: the builder re-read every match instead of only new ones
+- Fix: substitutes were recorded with position `SUB`
+
+## 2026-11-06 12:33 · `6b0c765` · Housekeeping
+- `.gitignore` for the Python cache and photo shortlist
+
+## 2026-11-06 12:33 · `8312c3a` · Layout fixes from a real-browser check
+- Fixture cards and bracket ties clip to their own width
+- Version tags on CSS and JS
+- League table: row lines align, club column takes the spare width
+- Projection notes sit under their own list; "1 pt" not "1 pts"
+- Bracket only requests rounds that have started, and says when loading fails
+- Timeline leaves out injury-delay events
+
+## 2026-11-06 12:09 · `7cc64e4` · Card width
+- Long venue names cut off with "…" instead of pushing past the card edge
+
+## 2026-11-06 11:53 · `70db716` · Champions League, bracket, team photos
+- Women's Champions League tab
+- NWSL playoff bracket with title chances; Champions League projection
+- Date arrows jump between matchdays
+- 26 freely licensed team photos from Wikimedia Commons, with credits
+- Fix: empty timeline message wrapped one word per line
+
+## 2026-11-06 11:15 · `a0e39d4` · First live version
+- WSL, Liga F and NWSL from ESPN's public feed, polling every 30 s while live
+- Match cards with live probabilities; match centre with probabilities, fair odds, score grid, win probability by minute, stats and timeline
+- League tables; illustrated team photos with uploads
+- Published to GitHub Pages
+
+## 2026-11-06 · Prototype (claude.ai artifact)
+- First version: a fictional 12-club league with drawn team photos, a Poisson matchup model, a score grid, a league table and an attack-vs-defence chart
