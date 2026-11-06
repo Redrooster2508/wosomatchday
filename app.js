@@ -174,7 +174,8 @@
     state.matches.forEach(function (m) {
       var p = probs(m), b = el("button", "fx"); b.type = "button";
       b.setAttribute("aria-pressed", String(state.sel === m.id));
-      var top = el("div", "fx-top"); top.appendChild(statusChip(m)); top.appendChild(el("span", "venue", m.venue)); b.appendChild(top);
+      var top = el("div", "fx-top"), venue = el("span", "venue", m.venue); venue.title = m.venue;
+      top.appendChild(statusChip(m)); top.appendChild(venue); b.appendChild(top);
       [["home", m.home], ["away", m.away]].forEach(function (x) {
         var t = x[1], other = x[0] === "home" ? m.away : m.home, row = el("div", "fx-row");
         if (m.state === "post" && t.score < other.score) row.classList.add("lost");
