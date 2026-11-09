@@ -27,3 +27,4 @@ Live scores, statistics, probabilities and player stats for the WSL, Liga F, NWS
 ## Logs
 - [[Changelog]]: every change, by commit
 - [[Log/2026-11-06]]: the build session, request by request
+- [[Log/2026-11-09]]: news filter for men's stories

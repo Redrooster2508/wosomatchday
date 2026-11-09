@@ -562,11 +562,35 @@
   function loadNews(force) {
     var league = state.league;
     if (!force && state.newsLeague === league && Date.now() - state.newsAt < TABLE_MS) return Promise.resolve();
-    return getJSON(SITE + LEAGUES[league].slug + "/news").then(function (d) {
+    var slug = LEAGUES[league].slug;
+    // surnames from this competition's player database, to recognise women's video clips
+    var squad = getJSON("data/" + slug + "/players.json").then(function (p) {
+      var s = {}; (p.players || []).forEach(function (x) { var w = fold(x.name).split(/\s+/).pop(); if (w && w.length >= 4) s[w] = 1; }); return s;
+    }).catch(function () { return {}; });
+    return Promise.all([getJSON(SITE + slug + "/news?limit=25"), squad]).then(function (r) {
+      var d = r[0];
       if (league !== state.league) return;
-      state.news = (d.articles || []).filter(function (a) { return a.headline && a.links && a.links.web && /^https:\/\//.test(a.links.web.href); });
+      state.news = (d.articles || []).filter(function (a) { return a.headline && a.links && a.links.web && /^https:\/\//.test(a.links.web.href) && womens(a, league, r[1]); });
       state.newsLeague = league; state.newsAt = Date.now();
     }).catch(function () { /* news is optional */ });
+  }
+  // ESPN's women's feeds carry some men's stories: pundit clips auto-tagged with the women's fixture of the same
+  // name, and articles also tagged with men's leagues or men's clubs. Keep a story only if nothing points to the men's game.
+  var WOMENS = /\bwomen|\bwsl\b|\bnwsl\b|\buwcl\b|liga f\b|femen|f[ée]minine|frauen|lionesses|matildas|uswnt|canwnt|far post|she ?believes/i;
+  function fold(t) { return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function womens(a, league, squad) {
+    var cats = a.categories || [], names = {};
+    var menLeague = cats.some(function (c) { return c.type === "league" && c.leagueId !== 600 && !WOMENS.test(c.description || "") && !/\b(w|femenina|féminine)\b|asian cup|copa am[ée]rica|wafcon|olympic|she ?believes|tournament of nations|algarve/i.test(c.description || ""); });
+    var menClub = cats.some(function (c) {           // the same club name tagged twice: once men's, once women's
+      if (c.type !== "team" || !c.description) return false;
+      if (names[c.description] && names[c.description] !== c.teamId) return true;
+      names[c.description] = c.teamId; return false;
+    });
+    if (menLeague || menClub) return false;
+    if (a.type !== "Media" || league === "nwsl") return true;   // every NWSL club is a women's club
+    var text = a.headline + " " + (a.description || "");
+    return cats.some(function (c) { return c.type === "athlete"; }) || WOMENS.test(text) ||
+      fold(text).split(/[^a-z]+/).some(function (w) { return squad && squad[w]; });   // names one of this competition's players
   }
   function ago(iso) {
     var mins = Math.round((Date.now() - new Date(iso)) / 60000);

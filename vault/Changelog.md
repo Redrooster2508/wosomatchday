@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-09 · Men's stories filtered out of the news (build 19)
+- ESPN's women's news feeds include men's stories; the news card now drops stories tagged with a men's league or a men's club, and video clips with nothing women's about them (no player tag, no women's wording, no player from the competition named)
+- The feed is asked for 25 stories, so five are still left after filtering
+
 ## 2026-11-06 · Team photo framing (build 18)
 - Photos can carry framing in `photos/manifest.json`: `"pos": "50% 20%"` moves the card's crop, `"fit": "whole"` shows a tall photo in full on a blurred copy of itself
 - Utah Royals (a tall single-player portrait, cropped through her eyes) now shows whole; Brighton's line-up no longer loses heads

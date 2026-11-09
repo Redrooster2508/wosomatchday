@@ -5,6 +5,9 @@ tags: [data, espn]
 
 Unofficial and undocumented, so fields can change without notice.
 
+## News feed caveat
+`/news` for a women's competition can include men's stories (pundit clips auto-tagged with the women's fixture, stories also tagged with men's leagues or clubs). The hub filters them; see [[Log/2026-11-09]].
+
 ## Leagues
 | Site key | ESPN slug |
 |---|---|
