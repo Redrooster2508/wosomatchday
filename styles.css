@@ -422,6 +422,7 @@ td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-tra
 .tp-hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:end}
 .tp-list{min-width:0}
 .tp-list td{white-space:nowrap}
+.fx-comp{margin-top:4px}
 .tp-squad{min-width:760px}
 .h2h-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
 .h2h-bar{margin-bottom:8px}

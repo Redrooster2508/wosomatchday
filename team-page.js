@@ -2,10 +2,13 @@
    Address: team.html?l=<league slug>&id=<ESPN team id> */
 (function () {
   "use strict";
+  // [name, home page tab, fixture label for international competitions]
   var NAMES = { "eng.w.1": ["Women's Super League", "wsl"], "esp.w.1": ["Liga F", "ligaf"], "usa.nwsl": ["NWSL", "nwsl"], "uefa.wchampions": ["Women's Champions League", "ucl"],
-    "fifa.friendly.w": ["International friendlies", "friendlies"], "fifa.wwcq.ply": ["World Cup qualifying play-offs", "wcq"], "concacaf.womens.championship": ["Concacaf W Championship", "wchamp"],
-    "caf.w.nations": ["Women's Africa Cup of Nations", "wafcon"], "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian"], "fifa.wwc": ["FIFA Women's World Cup", "wwc"],
-    "uefa.weuro": ["UEFA Women's Euro", "weuro"], "conmebol.america.femenina": ["Copa América Femenina", "copa"], "fifa.w.olympics": ["Olympic tournament", "olympics"], "uefa.w.nations": ["UEFA Women's Nations League", "wnl"] };
+    "fifa.friendly.w": ["International friendlies", "friendlies", "Friendly"], "fifa.wwcq.ply": ["World Cup qualifying play-offs", "wcq", "World Cup play-off"],
+    "concacaf.womens.championship": ["Concacaf W Championship", "wchamp", "W Championship"], "caf.w.nations": ["Women's Africa Cup of Nations", "wafcon", "WAFCON"],
+    "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian", "Asian Cup"], "fifa.wwc": ["FIFA Women's World Cup", "wwc", "World Cup"], "uefa.weuro": ["UEFA Women's Euro", "weuro", "Euro"],
+    "conmebol.america.femenina": ["Copa América Femenina", "copa", "Copa América"], "fifa.w.olympics": ["Olympic tournament", "olympics", "Olympics"],
+    "uefa.w.nations": ["UEFA Women's Nations League", "wnl", "Nations League"] };
   var SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/", CORE = "https://site.api.espn.com/apis/v2/sports/soccer/";
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
@@ -22,13 +25,22 @@
   if (!slug || !NAMES[slug] || !/^\d+$/.test(id || "")) { $("tName").textContent = "Team not found"; return; }
   $("tLeague").textContent = NAMES[slug][0];
   $("back").href = "./#" + NAMES[slug][1];
+  // a national team's fixtures come from every international competition, each labelled with its competition
+  var intl = !!NAMES[slug][2], others = intl ? Object.keys(NAMES).filter(function (s) { return NAMES[s][2] && s !== slug; }) : [];
 
   // ESPN's team schedule returns results by default and upcoming matches only with fixture=true
   Promise.all([opt(CORE + slug + "/standings"), opt(SITE + slug + "/teams/" + id + "/schedule"), opt("data/" + slug + "/players.json"), opt("data/" + slug + "/heat.json"),
-               opt("data/" + slug + "/minutes.json"), opt("data/" + slug + "/forecast.json"), Photos.loadShared(), opt(SITE + slug + "/teams/" + id + "/schedule?fixture=true")]).then(function (r) {
-    var st = r[0], sch = r[1], P = r[2], H = r[3], MIN = r[4] || {}, F = r[5], fx = r[7];
+               opt("data/" + slug + "/minutes.json"), opt("data/" + slug + "/forecast.json"), Photos.loadShared(), opt(SITE + slug + "/teams/" + id + "/schedule?fixture=true"),
+               Promise.all(others.map(function (s) { return opt(SITE + s + "/teams/" + id + "/schedule?fixture=true"); }))]).then(function (r) {
+    var st = r[0], sch = r[1], P = r[2], H = r[3], MIN = r[4] || {}, F = r[5], fx = r[7], comp = {};
     if (sch && fx && fx.events) { var have = {}; (sch.events || []).forEach(function (e) { have[e.id] = 1; }); sch.events = (sch.events || []).concat(fx.events.filter(function (e) { return !have[e.id]; })); }
     else if (!sch && fx) sch = fx;
+    if (sch) (sch.events || []).forEach(function (e) { comp[e.id] = slug; });
+    r[8].forEach(function (d, i) {
+      var more = (d && d.events || []).filter(function (e) { return !comp[e.id]; });
+      more.forEach(function (e) { comp[e.id] = others[i]; });
+      if (more.length) { if (!sch) sch = d; else sch.events = (sch.events || []).concat(more); }
+    });
     // team details: schedule first, then standings, then the player database
     var team = (sch && sch.team) || {}, row = null, rows = [];
     ((st && st.children) || []).forEach(function (g) { (g.standings && g.standings.entries || []).forEach(function (e) { rows.push(e); if (String(e.team.id) === id) row = e; }); });
@@ -56,7 +68,7 @@
       var cp = ev.competitions[0], me = cp.competitors.find(function (x) { return String(x.team.id) === id; }), op = cp.competitors.find(function (x) { return String(x.team.id) !== id; });
       function sc(x) { var v = x && x.score; return v == null ? null : typeof v === "object" ? (v.displayValue != null ? +v.displayValue : +v.value) : +v; }
       var stt = (cp.status || ev.status || {}).type || {};
-      return { id: ev.id, date: ev.date, home: me && me.homeAway === "home", opp: op ? (op.team.shortDisplayName || op.team.displayName) : "", oppId: op ? String(op.team.id) : "", oppLogo: op && op.team.logos && op.team.logos[0] && op.team.logos[0].href,
+      return { id: ev.id, comp: comp[ev.id] || slug, date: ev.date, home: me && me.homeAway === "home", opp: op ? (op.team.shortDisplayName || op.team.displayName) : "", oppId: op ? String(op.team.id) : "", oppLogo: op && op.team.logos && op.team.logos[0] && op.team.logos[0].href,
         done: !!stt.completed, gf: sc(me), ga: sc(op), detail: stt.shortDetail || "" };
     });
     var res = evs.filter(function (e) { return e.done; }).sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
@@ -67,15 +79,18 @@
       var t = el("table", "tp-list"), tb = el("tbody");
       items.slice(0, done ? 12 : 8).forEach(function (e) {
         var tr = el("tr");
-        tr.appendChild(el("td", "l", new Date(e.date).toLocaleDateString(undefined, { weekday: done ? undefined : "short", day: "numeric", month: "short" }) + (done ? "" : " " + new Date(e.date).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }))));
+        var dt = el("td", "l", new Date(e.date).toLocaleDateString(undefined, { weekday: done ? undefined : "short", day: "numeric", month: "short" }) + (done ? "" : " " + new Date(e.date).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })));
+        if (!done && intl) { var lc = el("div", "fx-comp"); lc.appendChild(el("span", "chip", NAMES[e.comp][2])); dt.appendChild(lc); }
+        tr.appendChild(dt);
         var o = el("td", "l"), oi = el("span", "tc"); oi.appendChild(logo(e.oppLogo));
-        var link = el("a", "pl-link", (e.home ? "v " : "at ") + e.opp); link.href = "team.html?l=" + encodeURIComponent(slug) + "&id=" + encodeURIComponent(e.oppId); oi.appendChild(link); o.appendChild(oi); tr.appendChild(o);
+        var link = el("a", "pl-link", (e.home ? "v " : "at ") + e.opp); link.href = "team.html?l=" + encodeURIComponent(e.comp) + "&id=" + encodeURIComponent(e.oppId); oi.appendChild(link); o.appendChild(oi); tr.appendChild(o);
         if (done) { var k = e.gf > e.ga ? "W" : e.gf < e.ga ? "L" : "D"; var td = el("td"); td.appendChild(el("span", "res " + k, k + " " + e.gf + "–" + e.ga)); tr.appendChild(td); }
         tb.appendChild(tr);
       });
       t.appendChild(tb); box.appendChild(t);
     }
     list($("tResults"), res, true); list($("tFixtures"), fix, false);
+    if (intl) $("fxH2").parentNode.appendChild(el("span", "eyebrow", "All competitions"));
     // forecast
     var ft = F && F.teams.find(function (t) { return t.id === id; });
     if (ft) {
@@ -121,10 +136,11 @@
     }
     // head to head picker
     var opps = rows.map(function (e) { return { id: String(e.team.id), name: (e.team.shortDisplayName || e.team.displayName || "").trim() }; }).filter(function (o) { return o.id !== id; });
-    if (!opps.length) res.concat(fix).forEach(function (e) { if (e.oppId && !opps.some(function (o) { return o.id === e.oppId; })) opps.push({ id: e.oppId, name: e.opp }); });
+    var fixHere = fix.filter(function (e) { return e.comp === slug; });
+    if (!opps.length) res.concat(fixHere).forEach(function (e) { if (e.oppId && !opps.some(function (o) { return o.id === e.oppId; })) opps.push({ id: e.oppId, name: e.opp }); });
     opps.sort(function (a, b) { return a.name.localeCompare(b.name); });
     var sel = $("h2hSel"); opps.forEach(function (o) { sel.appendChild(new Option(o.name, o.id)); });
-    var next = fix[0] && fix[0].oppId; if (next) sel.value = next;
+    var next = fixHere[0] && fixHere[0].oppId; if (next) sel.value = next;
     function showH2H() {
       var o = opps.find(function (x) { return x.id === sel.value; }); if (!o) return;
       $("tH2H").textContent = ""; $("tH2H").appendChild(el("p", "note", "Loading meetings…"));
