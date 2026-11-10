@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-10 · Men's national teams too (build 21)
+- A national team's fixtures now come from ESPN's all-competition schedule, so men's teams get theirs too: Spain men show UEFA Nations League v Czechia and England, then a friendly v Chile, each labelled
+- Pages for men's competitions the site doesn't list open instead of saying "Team not found", without the drawn squad picture, squad or heatmaps
+
 ## 2026-11-10 · National team fixtures from every competition (build 20)
 - A national team's page lists upcoming matches from all women's international competitions (friendlies, World Cup play-offs, Concacaf W Championship and the rest), each labelled with its competition under the date
 - Before, it only showed the competition in the address: the United States' friendlies page showed no fixtures although they play El Salvador in the W Championship on 28 Nov

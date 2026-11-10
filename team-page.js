@@ -22,25 +22,33 @@
   function tipFn(e, t) { if (e) showTip(e, t); else tip.hidden = true; }
   function logo(src, cls) { if (!src) return el("span", "crest-none", ""); var im = new Image(); im.src = src; im.alt = ""; im.loading = "lazy"; if (cls) im.className = cls; return im; }
 
-  if (!slug || !NAMES[slug] || !/^\d+$/.test(id || "")) { $("tName").textContent = "Team not found"; return; }
-  $("tLeague").textContent = NAMES[slug][0];
-  $("back").href = "./#" + NAMES[slug][1];
-  // a national team's fixtures come from every international competition, each labelled with its competition
-  var intl = !!NAMES[slug][2], others = intl ? Object.keys(NAMES).filter(function (s) { return NAMES[s][2] && s !== slug; }) : [];
+  // competitions outside NAMES (men's national teams' Nations League, men's friendlies…) take ESPN's own name
+  if (!slug || !/^[a-z0-9._]+$/.test(slug) || !/^\d+$/.test(id || "")) { $("tName").textContent = "Team not found"; return; }
+  var known = NAMES[slug], LG = {};
+  if (known) $("tLeague").textContent = known[0];
+  $("back").href = known ? "./#" + known[1] : "./";
+  function label(s) { if (NAMES[s] && NAMES[s][2]) return NAMES[s][2]; var lg = LG[s] || {}; return /friendly/i.test(lg.name || "") ? "Friendly" : lgName(lg) || s; }
+  function lgName(lg) { return lg.shortName || lg.abbreviation || lg.name || ""; }
 
   // ESPN's team schedule returns results by default and upcoming matches only with fixture=true
   Promise.all([opt(CORE + slug + "/standings"), opt(SITE + slug + "/teams/" + id + "/schedule"), opt("data/" + slug + "/players.json"), opt("data/" + slug + "/heat.json"),
                opt("data/" + slug + "/minutes.json"), opt("data/" + slug + "/forecast.json"), Photos.loadShared(), opt(SITE + slug + "/teams/" + id + "/schedule?fixture=true"),
-               Promise.all(others.map(function (s) { return opt(SITE + s + "/teams/" + id + "/schedule?fixture=true"); }))]).then(function (r) {
+               opt(SITE + "all/teams/" + id + "/schedule?fixture=true"), known ? null : opt(SITE + slug + "/scoreboard")]).then(function (r) {
     var st = r[0], sch = r[1], P = r[2], H = r[3], MIN = r[4] || {}, F = r[5], fx = r[7], comp = {};
     if (sch && fx && fx.events) { var have = {}; (sch.events || []).forEach(function (e) { have[e.id] = 1; }); sch.events = (sch.events || []).concat(fx.events.filter(function (e) { return !have[e.id]; })); }
     else if (!sch && fx) sch = fx;
     if (sch) (sch.events || []).forEach(function (e) { comp[e.id] = slug; });
-    r[8].forEach(function (d, i) {
-      var more = (d && d.events || []).filter(function (e) { return !comp[e.id]; });
-      more.forEach(function (e) { comp[e.id] = others[i]; });
-      if (more.length) { if (!sch) sch = d; else sch.events = (sch.events || []).concat(more); }
-    });
+    // a national team's fixtures come from every competition, men's or women's, each labelled with its competition.
+    // ESPN's all-competition schedule keeps men's and women's teams apart, but doesn't flag every women's national team
+    var all = r[8], sb = r[9], intl = !!(known && known[2]) || !!(all && all.team && all.team.isNational);
+    if (sb && sb.leagues && sb.leagues[0]) LG[slug] = sb.leagues[0];
+    if (intl && all) {
+      var more = (all.events || []).filter(function (e) { return !comp[e.id] && e.league && e.competitions[0].competitors.some(function (x) { return String(x.team.id) === id; }); });
+      more.forEach(function (e) { comp[e.id] = e.league.slug; if (!LG[e.league.slug]) LG[e.league.slug] = e.league; });
+      if (more.length) { if (!sch) sch = all; else sch.events = (sch.events || []).concat(more); }
+    }
+    var lname = known ? known[0] : lgName(LG[slug] || {});
+    $("tLeague").textContent = lname;
     // team details: schedule first, then standings, then the player database
     var team = (sch && sch.team) || {}, row = null, rows = [];
     ((st && st.children) || []).forEach(function (g) { (g.standings && g.standings.entries || []).forEach(function (e) { rows.push(e); if (String(e.team.id) === id) row = e; }); });
@@ -49,13 +57,19 @@
     var color = team.color || (P && P.teams[id] && P.teams[id].color) || "334455", alt = team.alternateColor || "ffffff";
     document.title = name + " · Matchday Hub";
     $("tName").textContent = name;
-    var cr = $("tCrest"); cr.appendChild(logo(crest)); cr.appendChild(el("span", null, NAMES[slug][0]));
-    // photo: shared or illustrated
-    var tObj = { id: id, color: color, alternateColor: alt };
-    var ph = $("tPhoto"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(tObj); im.alt = Photos.isPhoto(id) ? name + " team photo" : "Illustrated line-up in " + name + " colours"; ph.appendChild(im); Photos.frame(ph, im, id);
-    if (crest) ph.appendChild(logo(crest, "crest"));
-    var c = Photos.credit(id);
-    if (c) { $("tCredit").textContent = "Photo: "; if (c.source) { var a = el("a", null, c.text); a.href = c.source; a.target = "_blank"; a.rel = "noopener"; $("tCredit").appendChild(a); } else $("tCredit").appendChild(document.createTextNode(c.text)); }
+    var cr = $("tCrest"); cr.appendChild(logo(crest)); cr.appendChild(el("span", null, lname));
+    // a men's team (reached from a national team's fixtures) has no photo, squad or heatmaps here: the illustrations
+    // draw women, photos are keyed by women's team ids, and the player database only covers women's competitions
+    var men = !known && !/women|femen|\.w(\.|$)/i.test(slug + " " + lname);
+    if (men) { $("tPhoto").hidden = true; $("tPhoto").parentNode.classList.add("no-photo"); $("tSquad").parentNode.hidden = true; $("tHeat").parentNode.hidden = true; }
+    else {
+      // photo: shared or illustrated
+      var tObj = { id: id, color: color, alternateColor: alt };
+      var ph = $("tPhoto"), im = new Image(); im.className = "ph-img"; im.src = Photos.get(tObj); im.alt = Photos.isPhoto(id) ? name + " team photo" : "Illustrated line-up in " + name + " colours"; ph.appendChild(im); Photos.frame(ph, im, id);
+      if (crest) ph.appendChild(logo(crest, "crest"));
+      var c = Photos.credit(id);
+      if (c) { $("tCredit").textContent = "Photo: "; if (c.source) { var a = el("a", null, c.text); a.href = c.source; a.target = "_blank"; a.rel = "noopener"; $("tCredit").appendChild(a); } else $("tCredit").appendChild(document.createTextNode(c.text)); }
+    }
     // record
     if (row) {
       var s = {}; (row.stats || []).forEach(function (x) { s[x.name] = x.value; });
@@ -80,7 +94,7 @@
       items.slice(0, done ? 12 : 8).forEach(function (e) {
         var tr = el("tr");
         var dt = el("td", "l", new Date(e.date).toLocaleDateString(undefined, { weekday: done ? undefined : "short", day: "numeric", month: "short" }) + (done ? "" : " " + new Date(e.date).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })));
-        if (!done && intl) { var lc = el("div", "fx-comp"); lc.appendChild(el("span", "chip", NAMES[e.comp][2])); dt.appendChild(lc); }
+        if (!done && intl) { var lc = el("div", "fx-comp"); lc.appendChild(el("span", "chip", label(e.comp))); dt.appendChild(lc); }
         tr.appendChild(dt);
         var o = el("td", "l opp"), oi = el("span", "tc"); oi.appendChild(logo(e.oppLogo));
         var link = el("a", "pl-link", (e.home ? "v " : "at ") + e.opp); link.href = "team.html?l=" + encodeURIComponent(e.comp) + "&id=" + encodeURIComponent(e.oppId); oi.appendChild(link); o.appendChild(oi); tr.appendChild(o);
