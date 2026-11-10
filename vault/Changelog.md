@@ -10,6 +10,7 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 ## 2026-11-10 · National team fixtures from every competition (build 20)
 - A national team's page lists upcoming matches from all women's international competitions (friendlies, World Cup play-offs, Concacaf W Championship and the rest), each labelled with its competition under the date
 - Before, it only showed the competition in the address: the United States' friendlies page showed no fixtures although they play El Salvador in the W Championship on 28 Nov
+- Long opponent names (Papua New Guinea) wrap onto a second line in a team's results and fixtures instead of being cut off on phones
 
 ## 2026-11-09 · Men's stories filtered out of the news (build 19)
 - ESPN's women's news feeds include men's stories; the news card now drops stories tagged with a men's league or a men's club, and video clips with nothing women's about them (no player tag, no women's wording, no player from the competition named)

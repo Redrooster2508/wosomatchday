@@ -82,7 +82,7 @@
         var dt = el("td", "l", new Date(e.date).toLocaleDateString(undefined, { weekday: done ? undefined : "short", day: "numeric", month: "short" }) + (done ? "" : " " + new Date(e.date).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })));
         if (!done && intl) { var lc = el("div", "fx-comp"); lc.appendChild(el("span", "chip", NAMES[e.comp][2])); dt.appendChild(lc); }
         tr.appendChild(dt);
-        var o = el("td", "l"), oi = el("span", "tc"); oi.appendChild(logo(e.oppLogo));
+        var o = el("td", "l opp"), oi = el("span", "tc"); oi.appendChild(logo(e.oppLogo));
         var link = el("a", "pl-link", (e.home ? "v " : "at ") + e.opp); link.href = "team.html?l=" + encodeURIComponent(e.comp) + "&id=" + encodeURIComponent(e.oppId); oi.appendChild(link); o.appendChild(oi); tr.appendChild(o);
         if (done) { var k = e.gf > e.ga ? "W" : e.gf < e.ga ? "L" : "D"; var td = el("td"); td.appendChild(el("span", "res " + k, k + " " + e.gf + "–" + e.ga)); tr.appendChild(td); }
         tb.appendChild(tr);
