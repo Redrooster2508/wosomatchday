@@ -3,9 +3,13 @@ tags: [log]
 ---
 # Changelog
 
-Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]].
+Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]], [[Log/2026-11-09]] and [[Log/2026-11-11]].
 
 ## Unreleased (local, not pushed)
+
+## 2026-11-11 · Men's national team players (build 23)
+- Men's national teams have squads, heatmaps and player pages: the player database now also covers men's friendlies, the 2026 World Cup, the UEFA and Concacaf Nations Leagues, AFCON 2025 and AFCON qualifying
+- Men's player pages look for a freely licensed portrait the same way as women's (male Wikidata entries, 2023 or later), say "his" and "he", and link back to his national team
 
 ## 2026-11-11 · One page per team (build 22)
 - A team has one page whichever competition it's opened from: Chelsea's shows WSL and Champions League results and fixtures together, its WSL record and Champions League position, both forecasts, and a squad, heatmaps and head to head covering both

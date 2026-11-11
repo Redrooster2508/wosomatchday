@@ -6,7 +6,10 @@
     "fifa.friendly.w": ["International friendlies", "friendlies"], "fifa.wwcq.ply": ["World Cup qualifying play-offs", "wcq"],
     "concacaf.womens.championship": ["Concacaf W Championship", "wchamp"], "caf.w.nations": ["Women's Africa Cup of Nations", "wafcon"],
     "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian"], "fifa.wwc": ["FIFA Women's World Cup", "wwc"], "uefa.weuro": ["UEFA Women's Euro", "weuro"],
-    "conmebol.america.femenina": ["Copa América Femenina", "copa"], "fifa.w.olympics": ["Olympic tournament", "olympics"], "uefa.w.nations": ["UEFA Women's Nations League", "wnl"] };
+    "conmebol.america.femenina": ["Copa América Femenina", "copa"], "fifa.w.olympics": ["Olympic tournament", "olympics"], "uefa.w.nations": ["UEFA Women's Nations League", "wnl"],
+    // men's national teams: no home page tab, so the back link goes to his team's page
+    "fifa.friendly": ["Men's international friendlies", null, 1], "fifa.world": ["FIFA World Cup", null, 1], "uefa.nations": ["UEFA Nations League", null, 1],
+    "concacaf.nations.league": ["Concacaf Nations League", null, 1], "caf.nations_qual": ["Africa Cup of Nations qualifying", null, 1], "caf.nations": ["Africa Cup of Nations", null, 1] };
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -20,7 +23,9 @@
 
   if (!slug || !LEAGUE_NAMES[slug] || !/^\d+$/.test(id || "")) { $("pName").textContent = "Player not found"; return; }
   $("pLeague").textContent = LEAGUE_NAMES[slug][0];
-  $("back").href = "./#" + LEAGUE_NAMES[slug][1];
+  var MEN = !!LEAGUE_NAMES[slug][2], her = MEN ? "his" : "her", him = MEN ? "him" : "her";
+  $("back").href = LEAGUE_NAMES[slug][1] ? "./#" + LEAGUE_NAMES[slug][1] : "./";
+  if (MEN) $("hH").textContent = "Where he plays";
 
   function line(pos) {
     pos = String(pos || "").toUpperCase();
@@ -43,6 +48,7 @@
     $("pName").textContent = p.name;
     var club = $("pClub"); if (team.logo) { var im = new Image(); im.src = team.logo; im.alt = ""; club.appendChild(im); }
     var cl = el("a", "pl-link", team.name || ""); cl.href = "team.html?l=" + encodeURIComponent(slug) + "&id=" + encodeURIComponent(p.team); club.appendChild(cl);
+    if (MEN) { $("back").href = cl.href; $("back").textContent = "← " + (team.name || "Team"); }
     $("pInitials").textContent = p.name.split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join("");
     $("pSeason").textContent = (P.season || "") + " · " + P.matches + " matches in the database";
     facts([["Position", p.pos === "SUB" ? "" : p.pos], ["Shirt", p.no ? "#" + p.no : ""]]);
@@ -211,7 +217,7 @@
     }).catch(function () { return {}; });
     espn.then(function (a) {
       return entity(p.name, a.dob).then(function (hit) {
-        if (!hit) { careerNote("There's no Wikidata entry for her yet, so no career history."); return; }
+        if (!hit) { careerNote("There's no Wikidata entry for " + him + " yet, so no career history."); return; }
         origin(hit.id, a.nat);
         career(hit.id);
         return portrait(hit, p.name).then(function (img) {
@@ -223,7 +229,7 @@
           var l = el("a", null, img.credit); l.href = img.source; l.target = "_blank"; l.rel = "noopener"; cap.appendChild(l);
         });
       });
-    }).catch(function () { careerNote("Couldn't reach Wikidata for her career history. Try again later."); });
+    }).catch(function () { careerNote("Couldn't reach Wikidata for " + her + " career history. Try again later."); });
   }
   // ESPN writes dates of birth as D/M/YYYY
   function dobOf(txt) {
@@ -241,7 +247,7 @@
   // taller than wide, just her, newest first. Candidates are her main Wikidata image and her Commons category.
   // Older photos are not shown.
   var W = "https://www.wikidata.org/w/api.php?origin=*&format=json&";
-  // Her Wikidata item: a female (Q6581072) association football player (Q937857) with this name.
+  // Her Wikidata item: a female (Q6581072) association football player (Q937857) with this name; male (Q6581097) in men's competitions.
   // When ESPN gives a date of birth, a namesake born on another day is skipped.
   function entity(name, dob) {
     return getJSON(W + "action=wbsearchentities&language=en&limit=7&type=item&search=" + encodeURIComponent(name)).then(function (s) {
@@ -251,7 +257,7 @@
         var players = ids.map(function (i) { return e.entities[i]; }).filter(function (en) {
           var c = en && en.claims || {};
           function has(prop, q) { return (c[prop] || []).some(function (x) { var v = x.mainsnak && x.mainsnak.datavalue; return v && v.value && v.value.id === q; }); }
-          return has("P106", "Q937857") && has("P21", "Q6581072");
+          return has("P106", "Q937857") && has("P21", MEN ? "Q6581097" : "Q6581072");
         });
         function born(en) {
           var c = en.claims.P569, v = c && c[0] && c[0].mainsnak.datavalue && c[0].mainsnak.datavalue.value;
@@ -349,7 +355,7 @@
       " BIND(EXISTS { ?team wdt:P31/wdt:P279* wd:Q6979593 } AS ?nat)" +
       ' SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }').then(function (rows) {
       var seen = {}, spells = rows.filter(function (r) { if (seen[r.st]) return false; seen[r.st] = 1; return true; });
-      if (!spells.length) { careerNote("Wikidata doesn't list her teams yet."); return; }
+      if (!spells.length) { careerNote("Wikidata doesn't list " + her + " teams yet."); return; }
       function yr(t) { return t ? +t.slice(0, 4) : null; }
       spells.forEach(function (r) { r.y0 = yr(r.start); r.y1 = yr(r.end); });
       spells.sort(function (a, b) { return (a.y0 || 9999) - (b.y0 || 9999) || (a.y1 || 9999) - (b.y1 || 9999); });
@@ -357,12 +363,12 @@
       var clubs = spells.filter(function (r) { return r.nat !== "true"; }), intl = spells.filter(function (r) { return r.nat === "true"; });
       if (clubs.length) box.appendChild(careerTable("Clubs", clubs, true));
       if (intl.length) box.appendChild(careerTable("International", intl, false));
-    }).catch(function () { careerNote("Couldn't reach Wikidata for her career history. Try again later."); });
+    }).catch(function () { careerNote("Couldn't reach Wikidata for " + her + " career history. Try again later."); });
   }
-  // "Canada women's national under-20 soccer team" -> "Canada U20"
+  // "Canada women's national under-20 soccer team" -> "Canada U20"; "Spain national football team" -> "Spain"
   function teamName(t) {
     if (!t || /^Q\d+$/.test(t)) return "Unnamed team";
-    return t.replace(/ women's national (?:under-(\d+) )?(?:association )?(?:soccer |football )?team$/i, function (m, u) { return u ? " U" + u : ""; });
+    return t.replace(/ (?:women's |men's )?national (?:under-(\d+) )?(?:association )?(?:soccer |football )?team$/i, function (m, u) { return u ? " U" + u : ""; });
   }
   function careerTable(title, spells, withCountry) {
     var wrap = el("div", "pp-career"), asof = spells.some(function (r) { return r.asof; }), stats = spells.some(function (r) { return r.apps || r.goals; });

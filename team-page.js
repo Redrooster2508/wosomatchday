@@ -3,14 +3,18 @@
    Address: team.html?id=<ESPN team id>, optionally &l=<league slug> (the competition it was opened from, for the back link) */
 (function () {
   "use strict";
-  // [name, home page tab, short label for results and fixtures, international]
+  // [name, home page tab, short label for results and fixtures, international, men's]
   var NAMES = { "eng.w.1": ["Women's Super League", "wsl", "WSL"], "esp.w.1": ["Liga F", "ligaf", "Liga F"], "usa.nwsl": ["NWSL", "nwsl", "NWSL"],
     "uefa.wchampions": ["Women's Champions League", "ucl", "Champions League"],
     "fifa.friendly.w": ["International friendlies", "friendlies", "Friendly", 1], "fifa.wwcq.ply": ["World Cup qualifying play-offs", "wcq", "World Cup play-off", 1],
     "concacaf.womens.championship": ["Concacaf W Championship", "wchamp", "W Championship", 1], "caf.w.nations": ["Women's Africa Cup of Nations", "wafcon", "WAFCON", 1],
     "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian", "Asian Cup", 1], "fifa.wwc": ["FIFA Women's World Cup", "wwc", "World Cup", 1], "uefa.weuro": ["UEFA Women's Euro", "weuro", "Euro", 1],
     "conmebol.america.femenina": ["Copa América Femenina", "copa", "Copa América", 1], "fifa.w.olympics": ["Olympic tournament", "olympics", "Olympics", 1],
-    "uefa.w.nations": ["UEFA Women's Nations League", "wnl", "Nations League", 1] };
+    "uefa.w.nations": ["UEFA Women's Nations League", "wnl", "Nations League", 1],
+    // men's national teams have a player database but no home page tab
+    "fifa.friendly": ["Men's international friendlies", null, "Friendly", 1, 1], "fifa.world": ["FIFA World Cup", null, "World Cup", 1, 1],
+    "uefa.nations": ["UEFA Nations League", null, "Nations League", 1, 1], "concacaf.nations.league": ["Concacaf Nations League", null, "Nations League", 1, 1],
+    "caf.nations_qual": ["Africa Cup of Nations qualifying", null, "AFCON qualifier", 1, 1], "caf.nations": ["Africa Cup of Nations", null, "AFCON", 1, 1] };
   var DOMESTIC = ["eng.w.1", "esp.w.1", "usa.nwsl"];   // a club's main competition: its record and back link
   var SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/", CORE = "https://site.api.espn.com/apis/v2/sports/soccer/";
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
@@ -78,7 +82,7 @@
     var ours = active.filter(function (c) { return NAMES[c] && D[c]; });   // the site's competitions, with a player database
     var intl = ours.some(function (c) { return NAMES[c][3]; }) || !!team.isNational;
     var labelled = intl || active.length > 1;
-    var back = slug && NAMES[slug] ? slug : NAMES[main] ? main : null;
+    var back = slug && NAMES[slug] && NAMES[slug][1] ? slug : NAMES[main] && NAMES[main][1] ? main : null;
     $("back").href = back ? "./#" + NAMES[back][1] : "./";
 
     // team details: schedule first, then standings, then the player database
@@ -99,13 +103,13 @@
     var cr = $("tCrest"); cr.appendChild(logo(crest)); cr.appendChild(el("span", null, lname));
     // each competition keeps one colour across labels, results, fixtures and head to head; the main one first
     function kc(c) { var i = active.indexOf(c); return "k" + (i < 0 ? 3 : Math.min(i, 3)); }
-    // a men's team (reached from a national team's fixtures) has no photo, squad or heatmaps here: the illustrations
-    // draw women, photos are keyed by women's team ids, and the player database only covers women's competitions
-    var men = !ours.length && !/women|femen|\.w(\.|_|$)/i.test(active.join(" ") + " " + lname);
+    // a men's team (reached from a national team's fixtures) has its crest on its colours instead of a team photo: the
+    // illustrations draw women and photos are keyed by women's team ids. Only men's national teams have a squad.
+    var men = ours.length ? ours.every(function (c) { return NAMES[c][4]; }) : !/women|femen|\.w(\.|_|$)/i.test(active.join(" ") + " " + lname);
     if (men) {
       var bp = $("tPhoto"); bp.classList.add("tp-badge"); bp.style.setProperty("--c1", "#" + color); bp.style.setProperty("--c2", "#" + alt);
       if (crest) bp.appendChild(logo(crest, "tp-badge-crest"));
-      $("tSquad").parentNode.hidden = true; $("tHeat").parentNode.hidden = true;
+      if (!ours.length) { $("tSquad").parentNode.hidden = true; $("tHeat").parentNode.hidden = true; }
     }
     else {
       // photo: shared or illustrated
@@ -172,7 +176,7 @@
       if (fcs.length > 1) $("tForecast").hidden = true;
     }
 
-    // squad: every competition's numbers added together; a player's link goes to the competition she's played most in
+    // squad: every competition's numbers added together; a player's link goes to the competition they've played most in
     var SUM = ["apps", "starts", "cs", "G", "A", "SHOT", "SOG", "SV", "GA", "YC", "RC", "FC", "FA", "OG"], sq = {}, squad = [], squadComps = [];
     ours.forEach(function (c) {
       var P = D[c].P; if (!P) return;
@@ -188,7 +192,8 @@
       });
     });
     squad.sort(function (a, b) { return (b.min - a.min) || (b.apps - a.apps); });
-    if (squadComps.length > 1) $("sqH").parentNode.querySelector(".eyebrow").textContent = and(squadComps.map(label)) + " · click a player for her page";
+    var sqTip = "click a player for " + (men ? "his" : "her") + " page";
+    $("sqH").parentNode.querySelector(".eyebrow").textContent = squadComps.length > 1 ? and(squadComps.map(label)) + " · " + sqTip : sqTip.charAt(0).toUpperCase() + sqTip.slice(1);
     if (!squad.length) $("tSquad").appendChild(el("p", "note", "No players in the database for this team yet."));
     else {
       var t = el("table", "tp-squad"), hr = el("tr");
@@ -231,7 +236,7 @@
     }
 
     // head to head in any of the team's competitions
-    var h2hComps = ours.length ? ours : active;
+    var h2hComps = ours.length && !men ? ours : active;   // men's teams: qualifiers too, which have no player database
     var opps = [];
     function addOpp(oid, oname) { if (oid && oid !== id && !opps.some(function (o) { return o.id === oid; })) opps.push({ id: oid, name: oname }); }
     h2hComps.forEach(function (c) { (rows[c] || []).forEach(function (e) { addOpp(String(e.team.id), (e.team.shortDisplayName || e.team.displayName || "").trim()); }); });

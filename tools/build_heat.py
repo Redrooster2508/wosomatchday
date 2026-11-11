@@ -32,7 +32,9 @@ CORE = "https://sports.core.api.espn.com/v2/sports/soccer/leagues/"
 LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions",
            # national teams
            "fifa.friendly.w", "fifa.wwcq.ply", "concacaf.womens.championship", "caf.w.nations", "afc.w.asian.cup",
-           "fifa.wwc", "uefa.weuro", "conmebol.america.femenina", "fifa.w.olympics", "uefa.w.nations"]
+           "fifa.wwc", "uefa.weuro", "conmebol.america.femenina", "fifa.w.olympics", "uefa.w.nations",
+           # men's national teams, for their team and player pages
+           "fifa.friendly", "fifa.world", "uefa.nations", "concacaf.nations.league", "caf.nations_qual", "caf.nations"]
 UA = "WomensMatchdayHub/1.0 (https://github.com/Redrooster2508/wosomatchday)"
 GX, GY = 24, 16
 VERSION = 3  # 3: corners and out-of-play passes no longer count as progressive
