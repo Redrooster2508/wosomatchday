@@ -4,6 +4,7 @@
   --home:#2343D6; --away:#D9480F; --draw:#A0A7B0; --seq:#1D3FBF;
   --win:#1E8A4C; --loss:#C62B2B; --live:#C62B2B; --focus:#2343D6;
   --pitch:#E3EBE2; --pitch-line:#A9BBA7;
+  --k0:#2343D6; --k0b:#E3E8FB; --k1:#B4470B; --k1b:#FBE9DC; --k2:#0E7268; --k2b:#DCF1EC; --k3:#6B2FC9; --k3b:#ECE4FA;
   --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --f-body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-data:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -14,12 +15,14 @@
   --home:#6A84F5; --away:#E8702F; --draw:#5E6670; --seq:#7D95FF;
   --win:#3FB873; --loss:#F0645E; --live:#F0645E; --focus:#7D95FF; color-scheme:dark;
   --pitch:#16241C; --pitch-line:#2F4A3A;
+  --k0:#9DB0FF; --k0b:#1E2849; --k1:#F2AE7E; --k1b:#3A2618; --k2:#7DD6C8; --k2b:#11312D; --k3:#C7AEFF; --k3b:#2A2042;
 }}
 :root[data-theme="dark"]{
   --bg:#0E1318; --panel:#161C23; --sunk:#1C242D; --ink:#E9EDF2; --muted:#9AA4B1; --line:#29323C;
   --home:#6A84F5; --away:#E8702F; --draw:#5E6670; --seq:#7D95FF;
   --win:#3FB873; --loss:#F0645E; --live:#F0645E; --focus:#7D95FF; color-scheme:dark;
   --pitch:#16241C; --pitch-line:#2F4A3A;
+  --k0:#9DB0FF; --k0b:#1E2849; --k1:#F2AE7E; --k1b:#3A2618; --k2:#7DD6C8; --k2b:#11312D; --k3:#C7AEFF; --k3b:#2A2042;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -420,10 +423,19 @@ td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-tra
 
 /* team pages and head to head */
 .tp-hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:end}
-.tp-hero.no-photo{grid-template-columns:1fr} .tp-hero.no-photo .photo{display:none}
 .tp-list{min-width:0}
 .tp-list td{white-space:nowrap}
 .fx-comp{margin-top:4px}
+.fx-comp .chip{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;vertical-align:top;letter-spacing:.04em}
+.fc-group+.fc-group{margin-top:16px} .fc-group h3{margin-bottom:8px}
+/* competition colours: label, and a bar down the row's left edge */
+.chip.k0{background:var(--k0b);color:var(--k0)} .chip.k1{background:var(--k1b);color:var(--k1)} .chip.k2{background:var(--k2b);color:var(--k2)} .chip.k3{background:var(--k3b);color:var(--k3)}
+tr.k0>td:first-child,tr.k1>td:first-child,tr.k2>td:first-child,tr.k3>td:first-child{padding-left:12px}
+tr.k0>td:first-child{box-shadow:inset 3px 0 var(--k0)} tr.k1>td:first-child{box-shadow:inset 3px 0 var(--k1)} tr.k2>td:first-child{box-shadow:inset 3px 0 var(--k2)} tr.k3>td:first-child{box-shadow:inset 3px 0 var(--k3)}
+#tH2H .h2h-table{width:auto;min-width:min(100%,560px)}
+/* a men's team: no squad picture, so a panel in the team's colours with the crest */
+.photo.tp-badge{background:linear-gradient(135deg,var(--c1) 0 58%,var(--c2) 58% 66%,var(--c1) 66%);display:grid;place-items:center}
+.tp-badge-crest{width:38%;max-width:150px;aspect-ratio:1;object-fit:contain;background:rgba(255,255,255,.94);border-radius:50%;padding:6%;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 .tp-list td.opp,.tp-list td.opp .tc{white-space:normal}
 .tp-squad{min-width:760px}
 .h2h-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}

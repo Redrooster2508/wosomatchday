@@ -3,17 +3,25 @@ tags: [feature]
 ---
 # Team pages
 
-`team.html?l=<league slug>&id=<ESPN team id>` (`team-page.js`). Linked from the match centre's team names, the table and player pages.
+**One page per team, club or country**, whichever competition it's opened from: Chelsea's page is the same from the WSL tab and the Champions League tab. `team.html?id=<ESPN team id>&l=<league slug>` (`team-page.js`); `l` is optional and only sets the back link. Linked from the match centre's team names, the table, player pages and every result and fixture.
+
+## Which competitions
+ESPN's all-competition schedule (`/all/teams/<id>/schedule`, results, and `?fixture=true`, upcoming) names the competitions the team is playing in now: for Chelsea the WSL, the Champions League and its qualifying. It can come back empty (Barcelona's results did), so each competition the site covers is also asked for its own schedule. The competition in the address only counts when ESPN lists nothing current, so opening Spain from the 2023 World Cup tab gives this year's Spain, not the 2023 squad.
+
+A club's **main competition** is its domestic league (WSL, Liga F, NWSL); otherwise it's the one in the address. The main competition sets the masthead and the hero record.
+
+Women's clubs and national teams have their own ids, the same in every competition (Chelsea 19970 in the WSL and Champions League; Spain women 17640). Men's teams have different ids (Spain men 164) and the feed keeps them apart. A team counts as national if one of its competitions is a women's international one or ESPN flags it `isNational` (it doesn't flag every women's team: Chile, Peru, Uzbekistan aren't).
 
 ## Sections
-- **Hero:** team photo or illustration ([[Photos and licensing]]), crest, position, points, record, goals, zone, last-five form.
-- **Season forecast:** title or top-spot chance, projected points and zone chances, from `forecast.json`. See [[Season forecast]].
-- **Results and fixtures:** ESPN team schedule. Results come by default; **upcoming matches need `?fixture=true`**, so both are requested and merged.
-- **National teams, men's and women's:** fixtures come from every competition, not just the one in the address, from ESPN's all-competition schedule (`/all/teams/<id>/schedule?fixture=true`, one request), each labelled with its competition (Friendly, World Cup play-off, W Championship, UEFA Nations League…). Men's and women's national teams have different ids (Spain: 164 men, 17640 women) and the feed keeps them apart. A team counts as national if the page's competition is a women's international one or ESPN flags it `isNational` (it doesn't flag every women's team: Chile, Peru, Uzbekistan aren't). Opponent links go to that match's competition. Results, form and head to head stay with the page's competition.
-- **Men's teams:** opponents in men's matches link to pages for competitions the site doesn't list (`fifa.friendly`, `uefa.nations`, `concacaf.nations.league`…), headed with ESPN's competition name ("Men's International Friendly"). They have results, fixtures and head to head, but no picture (the illustrations draw women, and photos are keyed by women's team ids), squad or heatmaps (the player database only covers women's competitions).
-- **Squad:** from the [[Player stats database]], sorted by minutes, with goals per 90 (270+ minutes) and progressive passes.
-- **How they play:** every squad player's season data from `heat.json` added together: touches, shots, progressive passes (newest 120) and goal mouth. See [[Heatmaps]].
-- **Head to head:** pick any opponent. See below.
+- **Hero:** team photo or illustration ([[Photos and licensing]]), crest, the team's competitions, record in the main competition (position, points, played, record, goals, zone), a club's position in its other tables ("Champions League 3rd"), last-five form across all competitions.
+- **Season forecast:** one block per competition with a `forecast.json` (WSL, Liga F, Champions League). See [[Season forecast]].
+- **Results and fixtures:** every competition, ten each, newest results and soonest fixtures first. When a team plays in more than one competition, each row is labelled and colour-coded (a tinted label and a bar down the row's left edge; the main competition is blue, then orange, teal, purple: `--k0`…`--k3`). Labels are short: site competitions use NAMES; others use ESPN's name without the confederation ("Nations League", "World Cup"), with qualifiers and friendlies shortened ("Champions League qualifier", "World Cup qualifier", "Friendly").
+- **Squad:** from the [[Player stats database]], every competition's numbers added together (apps, minutes, goals, assists, shots, progressive passes, cards), sorted by minutes. A player links to the competition she's played most minutes in.
+- **How they play:** every squad player's data from each competition's `heat.json` added together (all grids are 24 × 16). A note says which competitions it's from and which have none (Liga F's play-by-play has no pitch positions). See [[Heatmaps]].
+- **Head to head:** see below.
+
+## Men's teams
+Reached from men's national teams' fixtures (opponents in the Nations League, men's friendlies…). Competitions the site doesn't list take ESPN's names. They have results, fixtures and head to head; instead of a picture, a panel in the team's colours with the crest (the illustrations draw women, and photos are keyed by women's team ids). No squad or heatmaps: the player database only covers women's competitions, so men's player stats and photos would need a men's database first.
 
 ## Head to head (`h2h.js`)
-ESPN team schedules for the last five seasons (`/teams/<id>/schedule?season=YYYY`), filtered to finished meetings with the opponent. Shows the wins/draws/losses summary, goals and a list. Also in the match centre ("earlier league meetings"; the current match is excluded). It only covers the same competition, since schedules are per competition.
+ESPN team schedules for the last five seasons (`/teams/<id>/schedule?season=YYYY`), filtered to finished meetings with the opponent, in every one of the team's site competitions (or every competition, for men's teams), merged and labelled. Shows the wins/draws/losses summary, goals and a list. The opponent picker lists every team in those tables and schedules, starting on the next opponent. Also in the match centre ("earlier league meetings"; the current match is excluded), where it covers that one competition.

@@ -34,10 +34,10 @@
     });
   }
 
-  // Summary from teamId's side, then the list.
+  // Summary from teamId's side, then the list. A meeting with a label (its competition) shows it under the date, in the colour class `cls`.
   function render(box, meetings, teamId, teamName, oppName) {
     box.textContent = "";
-    if (!meetings.length) { box.appendChild(el("p", "note", "No league meetings between " + teamName + " and " + oppName + " in the last five seasons.")); return; }
+    if (!meetings.length) { box.appendChild(el("p", "note", "No meetings between " + teamName + " and " + oppName + " in the last five seasons.")); return; }
     var w = 0, d = 0, l = 0, gf = 0, ga = 0;
     meetings.forEach(function (m) {
       var mine = m.home === String(teamId), f = mine ? m.hs : m.as, a = mine ? m.as : m.hs;
@@ -52,8 +52,10 @@
     box.appendChild(el("p", "note", meetings.length + " meetings · goals " + gf + "–" + ga));
     var t = el("table", "h2h-table"), tb = el("tbody");
     meetings.forEach(function (m) {
-      var tr = el("tr");
-      tr.appendChild(el("td", "l", new Date(m.date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })));
+      var tr = el("tr", m.cls || null);
+      var dt = el("td", "l", new Date(m.date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }));
+      if (m.label) { var lc = el("div", "fx-comp"); lc.appendChild(el("span", "chip " + (m.cls || ""), m.label)); dt.appendChild(lc); }   // set by team pages covering several competitions
+      tr.appendChild(dt);
       tr.appendChild(el("td", "l", m.hn));
       tr.appendChild(el("td", "h2h-score num", m.hs + "–" + m.as));
       tr.appendChild(el("td", "l", m.an));

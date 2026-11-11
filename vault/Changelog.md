@@ -7,6 +7,11 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-11 · One page per team (build 22)
+- A team has one page whichever competition it's opened from: Chelsea's shows WSL and Champions League results and fixtures together, its WSL record and Champions League position, both forecasts, and a squad, heatmaps and head to head covering both
+- Results and fixtures are colour-coded by competition, with short labels ("Nations League", "World Cup qualifier"); both lists show ten
+- Men's teams get a panel in their colours with the crest instead of an empty space; head to head no longer stretches across the card
+
 ## 2026-11-10 · Men's national teams too (build 21)
 - A national team's fixtures now come from ESPN's all-competition schedule, so men's teams get theirs too: Spain men show UEFA Nations League v Czechia and England, then a friendly v Chile, each labelled
 - Pages for men's competitions the site doesn't list open instead of saying "Team not found", without the drawn squad picture, squad or heatmaps
