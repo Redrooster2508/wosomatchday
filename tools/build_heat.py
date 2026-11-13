@@ -14,6 +14,8 @@ A pass is progressive when it moves the ball at least 25% closer to the opponent
 in the attacking half. ESPN doesn't say whether a pass was completed, so these are attempts.
 Minutes come from the starting XI (matches.json), substitutions and red cards in the play-by-play.
 
+Spots are kept to whole numbers on the feed's 0-100 scale (1% of the pitch), which is finer than any map draws;
+pass ends are rounded down, so a pass ending at 98.6 stays short of the goal line (99) where the maps cut off.
 Cells count touches on a 24 x 16 grid in the player's attacking direction (x along the pitch).
 Shot kinds: goal, on (saved), off, blocked. Only matches not in "done" are read.
 
@@ -34,7 +36,10 @@ LEAGUES = ["eng.w.1", "esp.w.1", "usa.nwsl", "uefa.wchampions",
            "fifa.friendly.w", "fifa.wwcq.ply", "concacaf.womens.championship", "caf.w.nations", "afc.w.asian.cup",
            "fifa.wwc", "uefa.weuro", "conmebol.america.femenina", "fifa.w.olympics", "uefa.w.nations",
            # men's national teams, for their team and player pages
-           "fifa.friendly", "fifa.world", "uefa.nations", "concacaf.nations.league", "caf.nations_qual", "caf.nations"]
+           "fifa.friendly", "fifa.world", "uefa.nations", "concacaf.nations.league", "caf.nations_qual", "caf.nations",
+           "fifa.worldq.uefa", "fifa.worldq.conmebol", "fifa.worldq.afc", "fifa.worldq.caf", "fifa.worldq.concacaf",
+           # men's clubs, for national team players' clubs
+           "eng.1", "esp.1", "uefa.champions"]
 UA = "WomensMatchdayHub/1.0 (https://github.com/Redrooster2508/wosomatchday)"
 GX, GY = 24, 16
 VERSION = 3  # 3: corners and out-of-play passes no longer count as progressive
@@ -119,7 +124,10 @@ def build(slug, rebuild=False):
     mfile, hfile = os.path.join(folder, "matches.json"), os.path.join(folder, "heat.json")
     if not os.path.exists(mfile):
         print(f"{slug}: run tools/build_players.py first"); return
-    matches = json.load(open(mfile))["matches"]
+    mf = json.load(open(mfile))
+    if mf.get("v") != 2:
+        print(f"{slug}: matches.json is in the old layout; run tools/build_players.py first"); return
+    matches, teams = mf["matches"], mf["teams"]
     heat = {"v": VERSION, "grid": [GX, GY], "done": [], "players": {}}
     if not rebuild and os.path.exists(hfile):
         old = json.load(open(hfile))
@@ -145,10 +153,10 @@ def build(slug, rebuild=False):
                 p["c"][cell] = p["c"].get(cell, 0) + 1
                 p["n"] += 1
                 if e["shot"]:
-                    opp = m["teams"].get(m["away"] if e["team"] == m["home"] else m["home"], {}).get("name", "")
+                    opp = teams.get(m["away"] if e["team"] == m["home"] else m["home"], {}).get("name", "")
                     gy = round(float(e["gy"]), 1) if e["gy"] is not None else None
                     gz = round(float(e["gz"]), 1) if e["gz"] is not None else None
-                    p["s"].append([round(x, 1), round(y, 1), e["shot"], opp, when, gy, gz])
+                    p["s"].append([round(x), round(y), e["shot"], opp, when, gy, gz])
                 if e["type"] in ("Pass", "Cross") and e["x2"] is not None:
                     p["p"] += 1
                     x2, y2 = float(e["x2"]), float(e["y2"])
@@ -156,10 +164,10 @@ def build(slug, rebuild=False):
                     # corners start on the goal line, and passes "ending" there mostly went out of play
                     if x < 99 and 50 <= x2 < 99 and after <= 0.75 * before:
                         p["pp"] += 1
-                        p["pl"] = (p["pl"] + [[round(x, 1), round(y, 1), round(x2, 1), round(y2, 1)]])[-120:]
+                        p["pl"] = (p["pl"] + [[int(x), int(y), int(x2), int(y2)]])[-120:]
             # minutes: starters from the match sheet, then substitutions and red cards
             end = 120 if any(ev[3] >= 3 for ev in res["events"]) else 90
-            on = {ln["id"]: (0 if ln["start"] else None) for ln in m["players"]}
+            on = {r[0]: (0 if r[4] else None) for r in m["players"]}  # rows: id, team, pos, no, start, stats
             off = {}
             for aid, kind, minute, _ in sorted(res["events"], key=lambda ev: ev[2]):
                 if kind == "subbed-in" and on.get(aid) is None:

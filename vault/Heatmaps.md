@@ -38,6 +38,7 @@ The site says so on Liga F match centres and player pages.
 - **Progressive passes:** `Pass` or `Cross` ending at least 25% closer to the opponent's goal and in the attacking half. **Corners** (starting on the goal line) and passes **ending on the goal line** (mostly out of play) are excluded. That was added in v3, after a match-centre check showed 74 "progressive" passes for one side. ESPN doesn't mark completed passes, so these are attempts.
 - **Goal mouth:** `goalPositionY` (posts at about 44.6 and 55.4) and `goalPositionZ` (crossbar at about 38). Drawn from the shooter's side, so the attacker's left is on the left; very high shots are pinned to the top edge.
 - **Minutes:** starters (from `matches.json`) from 0'; `Substitution` plays carry participants typed `subbed-in` and `subbed-out` with the clock; red cards end a player's match. A match lasts 90 minutes (120 with extra time); stoppage time isn't counted, which is standard practice. Per-90 rates need 270+ minutes.
+- **Rounding** (build 24): touch and shot spots are stored as whole numbers on the 0–100 scale (1% of the pitch); pass ends are rounded down, so a pass ending at 98.6 stays short of the goal line where the maps cut off. That saved about 10%.
 - The builder rebuilds everything when the file version changes (v1 → v2 for these fields, v2 → v3 for the pass rule).
 
 ## Gotchas

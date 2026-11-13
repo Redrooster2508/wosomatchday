@@ -7,6 +7,11 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-11 · Men's clubs, World Cup qualifying, smaller data (build 24)
+- Men's clubs in the Premier League, LaLiga and the Champions League have squads, heatmaps and player pages; a men's national team player's page names his club and links to it
+- World Cup qualifying from 2025 (all five confederations) is in the player database, so national team squads and player pages include it
+- Match sheets are stored as rows, with names and teams listed once per file: half the size (6.2 → 2.9 MB), with identical season totals. Heatmap spots are whole numbers (1% of the pitch), about 10% smaller
+
 ## 2026-11-11 · Men's national team players (build 23)
 - Men's national teams have squads, heatmaps and player pages: the player database now also covers men's friendlies, the 2026 World Cup, the UEFA and Concacaf Nations Leagues, AFCON 2025 and AFCON qualifying
 - Men's player pages look for a freely licensed portrait the same way as women's (male Wikidata entries, 2023 or later), say "his" and "he", and link back to his national team

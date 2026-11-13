@@ -9,7 +9,11 @@
     "conmebol.america.femenina": ["Copa América Femenina", "copa"], "fifa.w.olympics": ["Olympic tournament", "olympics"], "uefa.w.nations": ["UEFA Women's Nations League", "wnl"],
     // men's national teams: no home page tab, so the back link goes to his team's page
     "fifa.friendly": ["Men's international friendlies", null, 1], "fifa.world": ["FIFA World Cup", null, 1], "uefa.nations": ["UEFA Nations League", null, 1],
-    "concacaf.nations.league": ["Concacaf Nations League", null, 1], "caf.nations_qual": ["Africa Cup of Nations qualifying", null, 1], "caf.nations": ["Africa Cup of Nations", null, 1] };
+    "concacaf.nations.league": ["Concacaf Nations League", null, 1], "caf.nations_qual": ["Africa Cup of Nations qualifying", null, 1], "caf.nations": ["Africa Cup of Nations", null, 1],
+    "fifa.worldq.uefa": ["World Cup qualifying, Europe", null, 1], "fifa.worldq.conmebol": ["World Cup qualifying, South America", null, 1],
+    "fifa.worldq.afc": ["World Cup qualifying, Asia", null, 1], "fifa.worldq.caf": ["World Cup qualifying, Africa", null, 1],
+    "fifa.worldq.concacaf": ["World Cup qualifying, Concacaf", null, 1],
+    "eng.1": ["Premier League", null, 1], "esp.1": ["LaLiga", null, 1], "uefa.champions": ["UEFA Champions League", null, 1] };
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -23,7 +27,7 @@
 
   if (!slug || !LEAGUE_NAMES[slug] || !/^\d+$/.test(id || "")) { $("pName").textContent = "Player not found"; return; }
   $("pLeague").textContent = LEAGUE_NAMES[slug][0];
-  var MEN = !!LEAGUE_NAMES[slug][2], her = MEN ? "his" : "her", him = MEN ? "him" : "her";
+  var MEN = !!LEAGUE_NAMES[slug][2], her = MEN ? "his" : "her", him = MEN ? "him" : "her", nationalSide = null;
   $("back").href = LEAGUE_NAMES[slug][1] ? "./#" + LEAGUE_NAMES[slug][1] : "./";
   if (MEN) $("hH").textContent = "Where he plays";
 
@@ -49,6 +53,7 @@
     var club = $("pClub"); if (team.logo) { var im = new Image(); im.src = team.logo; im.alt = ""; club.appendChild(im); }
     var cl = el("a", "pl-link", team.name || ""); cl.href = "team.html?l=" + encodeURIComponent(slug) + "&id=" + encodeURIComponent(p.team); club.appendChild(cl);
     if (MEN) { $("back").href = cl.href; $("back").textContent = "← " + (team.name || "Team"); }
+    nationalSide = /^(fifa|uefa\.nations|concacaf\.nations|caf\.nations)/.test(slug) ? p.team : null;
     $("pInitials").textContent = p.name.split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join("");
     $("pSeason").textContent = (P.season || "") + " · " + P.matches + " matches in the database";
     facts([["Position", p.pos === "SUB" ? "" : p.pos], ["Shirt", p.no ? "#" + p.no : ""]]);
@@ -123,14 +128,15 @@
     });
   }
 
+  // matches.json keeps each player's line as a row: id, team, position, shirt, started, then the stats in M.stats order
   function matchLog(p, M) {
     var S = M.stats, rows = [];
     Object.keys(M.matches).forEach(function (mid) {
-      var m = M.matches[mid], ln = m.players.find(function (x) { return x.id === p.id; });
+      var m = M.matches[mid], ln = m.players.find(function (x) { return x[0] === p.id; });
       if (!ln) return;
-      var s = {}; S.forEach(function (k, i) { s[k] = ln.s[i] || 0; });
-      var home = ln.team === m.home, gf = home ? m.score[0] : m.score[1], ga = home ? m.score[1] : m.score[0];
-      rows.push({ id: mid, date: m.date, home: home, opp: m.teams[home ? m.away : m.home] || {}, gf: gf, ga: ga, res: gf > ga ? "W" : gf < ga ? "L" : "D", start: ln.start, s: s });
+      var s = {}; S.forEach(function (k, i) { s[k] = ln[5 + i] || 0; });
+      var home = ln[1] === m.home, gf = home ? m.score[0] : m.score[1], ga = home ? m.score[1] : m.score[0];
+      rows.push({ id: mid, date: m.date, home: home, opp: M.teams[home ? m.away : m.home] || {}, gf: gf, ga: ga, res: gf > ga ? "W" : gf < ga ? "L" : "D", start: ln[4], s: s });
     });
     return rows.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
   }
@@ -210,7 +216,12 @@
         nat.appendChild(document.createTextNode(a.citizenship));
       }
       var dob = dobOf(a.displayDOB);
-      facts([["Position", a.position && a.position.displayName], ["Nationality", nat],
+      // a men's national team player's club, linked to its page when it's in the player database
+      var club = null, ct = a.team;
+      if (MEN && nationalSide && ct && ct.id && String(ct.id) !== nationalSide && /^\d+$/.test(String(ct.id))) {
+        club = el("a", "pl-link", ct.displayName || ct.name || ""); club.href = "team.html?id=" + encodeURIComponent(ct.id);
+      }
+      facts([["Position", a.position && a.position.displayName], ["Club", club], ["Nationality", nat],
         ["Age", a.age ? a.age + (dob ? " (born " + new Date(dob + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) + ")" : "") : ""],
         ["Height", height(a.displayHeight)], ["Weight", weight(a.displayWeight)]]);
       return { dob: dob, nat: a.citizenship };

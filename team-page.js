@@ -11,11 +11,16 @@
     "afc.w.asian.cup": ["AFC Women's Asian Cup", "asian", "Asian Cup", 1], "fifa.wwc": ["FIFA Women's World Cup", "wwc", "World Cup", 1], "uefa.weuro": ["UEFA Women's Euro", "weuro", "Euro", 1],
     "conmebol.america.femenina": ["Copa América Femenina", "copa", "Copa América", 1], "fifa.w.olympics": ["Olympic tournament", "olympics", "Olympics", 1],
     "uefa.w.nations": ["UEFA Women's Nations League", "wnl", "Nations League", 1],
-    // men's national teams have a player database but no home page tab
+    // men's national teams and clubs have a player database but no home page tab
     "fifa.friendly": ["Men's international friendlies", null, "Friendly", 1, 1], "fifa.world": ["FIFA World Cup", null, "World Cup", 1, 1],
     "uefa.nations": ["UEFA Nations League", null, "Nations League", 1, 1], "concacaf.nations.league": ["Concacaf Nations League", null, "Nations League", 1, 1],
-    "caf.nations_qual": ["Africa Cup of Nations qualifying", null, "AFCON qualifier", 1, 1], "caf.nations": ["Africa Cup of Nations", null, "AFCON", 1, 1] };
-  var DOMESTIC = ["eng.w.1", "esp.w.1", "usa.nwsl"];   // a club's main competition: its record and back link
+    "caf.nations_qual": ["Africa Cup of Nations qualifying", null, "AFCON qualifier", 1, 1], "caf.nations": ["Africa Cup of Nations", null, "AFCON", 1, 1],
+    "fifa.worldq.uefa": ["World Cup qualifying, Europe", null, "World Cup qualifier", 1, 1], "fifa.worldq.conmebol": ["World Cup qualifying, South America", null, "World Cup qualifier", 1, 1],
+    "fifa.worldq.afc": ["World Cup qualifying, Asia", null, "World Cup qualifier", 1, 1], "fifa.worldq.caf": ["World Cup qualifying, Africa", null, "World Cup qualifier", 1, 1],
+    "fifa.worldq.concacaf": ["World Cup qualifying, Concacaf", null, "World Cup qualifier", 1, 1],
+    // men's clubs, reached from their players' pages
+    "eng.1": ["Premier League", null, "Premier League", 0, 1], "esp.1": ["LaLiga", null, "LaLiga", 0, 1], "uefa.champions": ["UEFA Champions League", null, "Champions League", 0, 1] };
+  var DOMESTIC = ["eng.w.1", "esp.w.1", "usa.nwsl", "eng.1", "esp.1"];   // a club's main competition: its record and back link
   var SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/", CORE = "https://site.api.espn.com/apis/v2/sports/soccer/";
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
@@ -104,7 +109,7 @@
     // each competition keeps one colour across labels, results, fixtures and head to head; the main one first
     function kc(c) { var i = active.indexOf(c); return "k" + (i < 0 ? 3 : Math.min(i, 3)); }
     // a men's team (reached from a national team's fixtures) has its crest on its colours instead of a team photo: the
-    // illustrations draw women and photos are keyed by women's team ids. Only men's national teams have a squad.
+    // illustrations draw women and photos are keyed by women's team ids. Men's teams outside the database have no squad.
     var men = ours.length ? ours.every(function (c) { return NAMES[c][4]; }) : !/women|femen|\.w(\.|_|$)/i.test(active.join(" ") + " " + lname);
     if (men) {
       var bp = $("tPhoto"); bp.classList.add("tp-badge"); bp.style.setProperty("--c1", "#" + color); bp.style.setProperty("--c2", "#" + alt);
@@ -236,7 +241,7 @@
     }
 
     // head to head in any of the team's competitions
-    var h2hComps = ours.length && !men ? ours : active;   // men's teams: qualifiers too, which have no player database
+    var h2hComps = ours.length ? ours : active;
     var opps = [];
     function addOpp(oid, oname) { if (oid && oid !== id && !opps.some(function (o) { return o.id === oid; })) opps.push({ id: oid, name: oname }); }
     h2hComps.forEach(function (c) { (rows[c] || []).forEach(function (e) { addOpp(String(e.team.id), (e.team.shortDisplayName || e.team.displayName || "").trim()); }); });
