@@ -6,7 +6,11 @@ tags: [log]
 Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]], [[Log/2026-11-09]] and [[Log/2026-11-11]].
 
 ## Unreleased (local, not pushed)
-- Nothing yet
+
+## 2026-11-13 · New font (build 26)
+- One typeface, Archivo, across the site: a condensed cut for headings and tabs, the regular cut for text, labels, times and odds (numbers line up in columns). It replaces three fonts: Big Shoulders Display for headings, Archivo for text and IBM Plex Mono for labels and numbers
+- Small capital labels get wider word gaps, so "Champions League" doesn't read as one word
+- Fix: on phones the page no longer widens to fit the whole tab row; the tabs scroll inside the screen
 
 ## 2026-11-13 · Men's team photos, player competition links, phone tabs (build 25)
 - 32 men's teams have freely licensed team photos (12 clubs, 20 World Cup teams), reviewed by eye; the rest keep the crest panel
