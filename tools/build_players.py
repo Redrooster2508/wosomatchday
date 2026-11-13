@@ -7,6 +7,8 @@ line from the match sheet (goals, assists, shots, saves, cards, fouls...), and w
   data/<league>/matches.json   one entry per finished match, with every player's line as a row (columns in ROW);
                                player names and teams are listed once at the top, not in every match
   data/<league>/players.json   season totals per player, plus team info
+  data/index/<n>.json          every competition each player appears in, for the links on player pages;
+                               a player is in file int(id) % 20, so a page loads one small file
 
 Matches already in matches.json are not fetched again, so later runs only read new results.
 A GitHub Actions workflow (.github/workflows/players.yml) runs this on a schedule.
@@ -182,6 +184,29 @@ def build(slug, rebuild=False):
     print(f"  {len(players)} players from {len(matches)} matches", flush=True)
 
 
+SHARDS = 20
+
+
+def write_index():
+    """{athlete id: [[competition, apps], ...]} across every competition, most appearances first."""
+    idx = {}
+    for slug in LEAGUES:
+        p = os.path.join(DATA, slug, "players.json")
+        if os.path.exists(p):
+            for pl in json.load(open(p))["players"]:
+                idx.setdefault(pl["id"], []).append([slug, pl["apps"]])
+    shards = [{} for _ in range(SHARDS)]
+    for aid, comps in idx.items():
+        shards[int(aid) % SHARDS][aid] = sorted(comps, key=lambda c: -c[1])
+    os.makedirs(os.path.join(DATA, "index"), exist_ok=True)
+    for n, sh in enumerate(shards):
+        path, body = os.path.join(DATA, "index", f"{n}.json"), json.dumps(sh, separators=(",", ":"), sort_keys=True)
+        if not os.path.exists(path) or open(path).read() != body:   # only real changes reach the repository
+            with open(path, "w") as f:
+                f.write(body)
+    print(f"index: {len(idx)} players in {SHARDS} files", flush=True)
+
+
 def _safe(slug, ev):
     try:
         return player_lines(slug, ev)
@@ -194,3 +219,4 @@ if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     for slug in args or LEAGUES:
         build(slug, rebuild="--rebuild" in sys.argv)
+    write_index()

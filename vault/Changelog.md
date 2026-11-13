@@ -6,6 +6,13 @@ tags: [log]
 Newest first. Commit ids link the change to the repository history. The narrative is in [[Log/2026-11-06]], [[Log/2026-11-09]] and [[Log/2026-11-11]].
 
 ## Unreleased (local, not pushed)
+- Nothing yet
+
+## 2026-11-13 · Men's team photos, player competition links, phone tabs (build 25)
+- 32 men's teams have freely licensed team photos (12 clubs, 20 World Cup teams), reviewed by eye; the rest keep the crest panel
+- A player page links to every competition the player is in, with appearances
+- On phones the competition tabs scroll in one row; wide tables show a shadow where there's more to scroll; the match centre's head to head no longer stretches across the card
+- A player's initials show cleanly while the photo loads (dark initials for white or pale team colours)
 
 ## 2026-11-11 · Men's clubs, World Cup qualifying, smaller data (build 24)
 - Men's clubs in the Premier League, LaLiga and the Champions League have squads, heatmaps and player pages; a men's national team player's page names his club and links to it

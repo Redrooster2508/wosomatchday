@@ -108,13 +108,13 @@
     var cr = $("tCrest"); cr.appendChild(logo(crest)); cr.appendChild(el("span", null, lname));
     // each competition keeps one colour across labels, results, fixtures and head to head; the main one first
     function kc(c) { var i = active.indexOf(c); return "k" + (i < 0 ? 3 : Math.min(i, 3)); }
-    // a men's team (reached from a national team's fixtures) has its crest on its colours instead of a team photo: the
-    // illustrations draw women and photos are keyed by women's team ids. Men's teams outside the database have no squad.
+    // a men's team without a shared photo has its crest on its colours: the illustrations draw women.
+    // Men's teams outside the database have no squad.
     var men = ours.length ? ours.every(function (c) { return NAMES[c][4]; }) : !/women|femen|\.w(\.|_|$)/i.test(active.join(" ") + " " + lname);
-    if (men) {
+    if (men && !ours.length) { $("tSquad").parentNode.hidden = true; $("tHeat").parentNode.hidden = true; }
+    if (men && !Photos.isPhoto(id)) {
       var bp = $("tPhoto"); bp.classList.add("tp-badge"); bp.style.setProperty("--c1", "#" + color); bp.style.setProperty("--c2", "#" + alt);
       if (crest) bp.appendChild(logo(crest, "tp-badge-crest"));
-      if (!ours.length) { $("tSquad").parentNode.hidden = true; $("tHeat").parentNode.hidden = true; }
     }
     else {
       // photo: shared or illustrated

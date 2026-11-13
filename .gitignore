@@ -5,3 +5,5 @@ vault/.obsidian/cache
 .obsidian/
 vault.md
 tools/.flickr_key
+tools/men_candidates.json
+tools/sheets/

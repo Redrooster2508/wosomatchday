@@ -14,6 +14,13 @@
     "fifa.worldq.afc": ["World Cup qualifying, Asia", null, 1], "fifa.worldq.caf": ["World Cup qualifying, Africa", null, 1],
     "fifa.worldq.concacaf": ["World Cup qualifying, Concacaf", null, 1],
     "eng.1": ["Premier League", null, 1], "esp.1": ["LaLiga", null, 1], "uefa.champions": ["UEFA Champions League", null, 1] };
+  // short names for the links to a player's other competitions
+  var SHORT = { "eng.w.1": "WSL", "esp.w.1": "Liga F", "usa.nwsl": "NWSL", "uefa.wchampions": "Champions League", "fifa.friendly.w": "Friendlies",
+    "fifa.wwcq.ply": "World Cup play-offs", "concacaf.womens.championship": "W Championship", "caf.w.nations": "WAFCON", "afc.w.asian.cup": "Asian Cup",
+    "fifa.wwc": "World Cup", "uefa.weuro": "Euro", "conmebol.america.femenina": "Copa América", "fifa.w.olympics": "Olympics", "uefa.w.nations": "Nations League",
+    "fifa.friendly": "Friendlies", "fifa.world": "World Cup", "uefa.nations": "Nations League", "concacaf.nations.league": "Nations League",
+    "caf.nations_qual": "AFCON qualifying", "caf.nations": "AFCON", "eng.1": "Premier League", "esp.1": "LaLiga", "uefa.champions": "Champions League" };
+  function short(c) { return SHORT[c] || (/^fifa\.worldq\./.test(c) ? "World Cup qualifying" : LEAGUE_NAMES[c][0]); }
   var qs = new URLSearchParams(location.search), slug = qs.get("l"), id = qs.get("id");
   function $(x) { return document.getElementById(x); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -50,6 +57,7 @@
     var team = P.teams[p.team] || {};
     document.title = p.name + " · Matchday Hub";
     $("pName").textContent = p.name;
+    comps();
     var club = $("pClub"); if (team.logo) { var im = new Image(); im.src = team.logo; im.alt = ""; club.appendChild(im); }
     var cl = el("a", "pl-link", team.name || ""); cl.href = "team.html?l=" + encodeURIComponent(slug) + "&id=" + encodeURIComponent(p.team); club.appendChild(cl);
     if (MEN) { $("back").href = cl.href; $("back").textContent = "← " + (team.name || "Team"); }
@@ -71,6 +79,23 @@
     else if (!Object.keys(H.players || {}).length) $("pHeat").appendChild(el("p", "note", "ESPN's play-by-play for this competition has no pitch positions, so there's no heatmap."));
     else Heat.seasonPanel($("pHeat"), hp, H.grid, function (e, t) { if (e) showTip(e, t); else hideTip(); });
   }).catch(function () { $("pName").textContent = "Player stats for this competition haven't been built yet."; });
+
+  // every competition this player is in (data/index, written by tools/build_players.py), most appearances first
+  function comps() {
+    getJSON("data/index/" + (+id % 20) + ".json").then(function (idx) {
+      var list = (idx[id] || []).filter(function (c) { return LEAGUE_NAMES[c[0]]; });
+      if (list.length < 2) return;
+      var nav = $("pComps");
+      list.forEach(function (c) {
+        var a = el(c[0] === slug ? "span" : "a", "pp-comp");
+        a.appendChild(document.createTextNode(short(c[0]))); a.appendChild(el("b", null, String(c[1])));
+        a.title = LEAGUE_NAMES[c[0]][0] + ": " + c[1] + " apps";
+        if (c[0] === slug) a.setAttribute("aria-current", "page"); else a.href = "player.html?l=" + encodeURIComponent(c[0]) + "&id=" + encodeURIComponent(id);
+        nav.appendChild(a);
+      });
+      nav.hidden = false;
+    }).catch(function () {});
+  }
 
   function facts(list, after) {
     var dl = $("pFacts");
@@ -206,7 +231,9 @@
   // ESPN profile (age, height, nationality), then her Wikidata entry: a freely licensed portrait, birthplace and career.
   function profile(p, team) {
     var photo = $("pPhoto");
-    photo.style.setProperty("--club", "#" + String(team.color || "334455").replace("#", ""));
+    var kit = String(team.color || "334455").replace("#", ""), rgb = /^[0-9a-f]{6}$/i.test(kit) ? parseInt(kit, 16) : 0x334455;
+    photo.style.setProperty("--club", "#" + kit);
+    if ((0.299 * (rgb >> 16) + 0.587 * (rgb >> 8 & 255) + 0.114 * (rgb & 255)) / 255 > 0.72) photo.classList.add("pale");
     var espn = getJSON("https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/" + encodeURIComponent(p.id)).then(function (d) {
       var a = d.athlete || {};
       var nat = null;

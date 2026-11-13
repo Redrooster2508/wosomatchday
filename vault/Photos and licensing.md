@@ -22,6 +22,15 @@ The searches gave 200 candidates from 2023 on, for 37 of 59 clubs. All were revi
 
 **Still on illustrations (26 clubs):** among them Man City, Aston Villa, Tottenham, Liverpool, Everton, Lyon, PSG and most of Liga F, where no free photo from 2023 on was found. The illustration shows a women's squad (see Team photos below).
 
+## Men's team photos (2026-11-13, build 25)
+Same rules: freely licensed, 2023 or later, reviewed by eye on contact sheets and checked at the 16:10 card crop. Searched: the 66 clubs in the Premier League, LaLiga and men's Champions League, and the 48 teams at the 2026 World Cup. **32 picked**: 12 clubs (Arsenal, Bournemouth, Brentford, Crystal Palace, Everton, Fulham, Hull, Leeds, Nottingham Forest, Sunderland, Inter, Real Sociedad) and 20 national teams (mostly 2026 World Cup starting XIs: Argentina, Australia, Belgium, Brazil, Canada, Colombia, Croatia, Ecuador, Egypt, France, Germany, Ghana, Japan, Norway, Panama, Portugal, Saudi Arabia, Scotland, Spain (World Cup winners' celebration), Uzbekistan). Licences: CC BY-SA 4.0 (19), CC BY 4.0 (6), CC0 (5), CC BY 2.0, public domain.
+
+**Tool:** `tools/men_photo_candidates.py` finds each team's Commons category through Wikidata (club classes `Q476028` and `Q103229495`, FC Barcelona uses the newer one; national team classes `Q6979593` and the men's `Q135408445`, which most men's national teams now use), follows season, match, celebration and group-photo sub-folders, and searches titles. It skips women's, youth, B and reserve sides, other sports (basketball, handball, hockey) and the Copa de la Reina, and keeps at most two photos of one series. `--sheets` makes the contact sheets. `tools/fetch_photos.py --pick` names men's teams from the player database.
+
+**Rejected on review:** the opponent's line-up filed under this team's name was the most common trap (England's results were Ghana's and Panama's XIs, Uruguay's were Saudi Arabia's, Porto's were Salzburg's, Osasuna's were Bordeaux players, Málaga's was Las Palmas); also Manchester City's under-18s, Sweden's women, Paraguay's women's under-17s, a 1916 USA team, and two that didn't work at card size (Napoli, blurry; Bayern's title celebration, players too small on the balcony). Chelsea's only team photo has a politician front and centre.
+
+**No photo yet:** most big clubs (Chelsea, Liverpool, both Manchester clubs, Real Madrid, Barcelona, Atlético, PSG, Bayern, Dortmund…) and 28 World Cup teams, including England, the USA, Mexico, the Netherlands and Morocco. They keep the crest on their colours. Openverse/Flickr wasn't searched for men's teams yet.
+
 ## Team photos
 **Framing:** cards are 16:10 and crop from the centre. A manifest entry can add `"pos": "<x>% <y>%"` (focus point, e.g. `50% 20%` for a line-up in the top half) or `"fit": "whole"` (show a tall photo whole on a blurred copy). Check each new photo at the card crop before adding it.
 Shown in this order:

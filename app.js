@@ -694,6 +694,9 @@
     $("seasonLabel").textContent = intl ? LEAGUES[state.league].name : (state.tableSeason || LEAGUES[state.league].name);
     $("dateLabel").textContent = state.day ? fmtDay.format(parseDay(state.day)) : "—";
     document.querySelectorAll(".tab").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.league === state.league || (intl && b.dataset.league === "intl"))); });
+    // on phones the tabs scroll sideways: keep the chosen one in view
+    var on = document.querySelector('.tab[aria-pressed="true"]'), bar = on && on.parentNode;
+    if (bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2;
     $("intlPick").hidden = !intl; $("intlSel").value = state.league;
     renderFixtures(); renderMatch(); renderTable(); renderBracket(); renderForecast(); renderNews();
     if (state.playersFor !== state.league) { state.playersFor = state.league; Players.mount($("players"), LEAGUES[state.league].slug); }

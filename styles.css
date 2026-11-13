@@ -168,7 +168,12 @@ button,select,input{font:inherit;color:inherit}
 .timeline .tm{font-family:var(--f-data);font-size:11px;color:var(--muted);margin-right:6px;text-transform:uppercase}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
-.tbl-wrap{overflow-x:auto}
+/* a wide table scrolls sideways; a shadow shows at whichever edge has more to see (the panel-coloured covers scroll with
+   the table and hide the shadow once an edge is reached) */
+.tbl-wrap{overflow-x:auto;background:linear-gradient(90deg,var(--panel) 30%,transparent) left/32px 100% no-repeat local,
+  linear-gradient(270deg,var(--panel) 30%,transparent) right/32px 100% no-repeat local,
+  linear-gradient(90deg,color-mix(in srgb,var(--ink) 18%,transparent),transparent) left/14px 100% no-repeat scroll,
+  linear-gradient(270deg,color-mix(in srgb,var(--ink) 18%,transparent),transparent) right/14px 100% no-repeat scroll}
 table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
 th,td{padding:7px 6px;text-align:right;white-space:nowrap}
 th{font-family:var(--f-data);font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--ink)}
@@ -331,7 +336,17 @@ a.pl-link:hover{text-decoration:underline}
 .pp-photo .pp-img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 20%;border-radius:6px;display:block;background:var(--sunk)}
 .pp-initials{aspect-ratio:4/5;border-radius:6px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:96px;color:#fff;
   background:linear-gradient(160deg,var(--club,#334455),color-mix(in oklab,var(--club,#334455) 55%,#000));text-shadow:0 2px 12px rgba(0,0,0,.25)}
+/* white or pale team colours (England, Real Madrid): dark initials on a lightly shaded panel */
+.pp-photo.pale .pp-initials{color:#14181F;text-shadow:none;background:linear-gradient(160deg,var(--club),color-mix(in oklab,var(--club) 82%,#000));border:1px solid var(--line)}
 .pp-photo.has-img .pp-initials{display:none}
+.pp-photo:not(.has-img) .pp-img{display:none}   /* initials until the portrait has loaded, never an empty box above them */
+/* the player's other competitions */
+.pp-comps{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.pp-comp{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;color:var(--ink);text-decoration:none;background:var(--panel)}
+.pp-comp b{font-family:var(--f-data);font-size:11px;font-weight:500;color:var(--muted)}
+a.pp-comp:hover{border-color:var(--ink)}
+.pp-comp[aria-current]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.pp-comp[aria-current] b{color:inherit;opacity:.75}
 .pp-id{display:grid;gap:10px;min-width:0}
 .pp-id h1{font-size:clamp(44px,8vw,96px);line-height:.9;overflow-wrap:anywhere}
 .pp-club{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px}
@@ -366,6 +381,9 @@ a.pl-link:hover{text-decoration:underline}
 @media (max-width:560px){
   .pp-hero{grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:center}
   .pp-initials{font-size:48px}
+  .pp-comps{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .pp-comps::-webkit-scrollbar{display:none}
+  .pp-comp{flex:none}
   .pp-rank{grid-template-columns:minmax(0,1fr) 44px 84px;}
   .pp-rank .bk-bar{grid-column:1/-1;grid-row:2}
   .pp-ct .pp-ct-col{display:none}
@@ -403,7 +421,13 @@ td img{max-width:none}
 .intl-pick select{text-transform:none;letter-spacing:0;font-family:var(--f-body);font-size:14px;color:var(--ink)}
 tr.grp td{background:var(--sunk);border-bottom:2px solid var(--ink);padding-top:14px}
 td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.02em}
-.tabs{flex-wrap:wrap}
+.tabs{flex-wrap:wrap;position:relative}
+/* phones: one row of tabs that scrolls sideways instead of a second line */
+@media (max-width:620px){
+  .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none}
+}
 .crest-none{width:28px;height:28px;border-radius:50%;background:var(--sunk);color:var(--muted);display:grid;place-items:center;font-family:var(--f-data);font-size:9px;font-weight:500}
 
 /* season forecast */
@@ -432,7 +456,6 @@ td.grp-name{font-family:var(--f-display);font-weight:800;font-size:18px;text-tra
 .chip.k0{background:var(--k0b);color:var(--k0)} .chip.k1{background:var(--k1b);color:var(--k1)} .chip.k2{background:var(--k2b);color:var(--k2)} .chip.k3{background:var(--k3b);color:var(--k3)}
 tr.k0>td:first-child,tr.k1>td:first-child,tr.k2>td:first-child,tr.k3>td:first-child{padding-left:12px}
 tr.k0>td:first-child{box-shadow:inset 3px 0 var(--k0)} tr.k1>td:first-child{box-shadow:inset 3px 0 var(--k1)} tr.k2>td:first-child{box-shadow:inset 3px 0 var(--k2)} tr.k3>td:first-child{box-shadow:inset 3px 0 var(--k3)}
-#tH2H .h2h-table{width:auto;min-width:min(100%,560px)}
 /* a men's team: no squad picture, so a panel in the team's colours with the crest */
 .photo.tp-badge{background:linear-gradient(135deg,var(--c1) 0 58%,var(--c2) 58% 66%,var(--c1) 66%);display:grid;place-items:center}
 .tp-badge-crest{width:38%;max-width:150px;aspect-ratio:1;object-fit:contain;background:rgba(255,255,255,.94);border-radius:50%;padding:6%;box-shadow:0 6px 24px rgba(0,0,0,.25)}
@@ -440,7 +463,7 @@ tr.k0>td:first-child{box-shadow:inset 3px 0 var(--k0)} tr.k1>td:first-child{box-
 .tp-squad{min-width:760px}
 .h2h-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
 .h2h-bar{margin-bottom:8px}
-.h2h-table{min-width:0}
+.h2h-table{width:auto;min-width:min(100%,560px)}   /* a short list doesn't need the whole card's width */
 .h2h-score{text-align:center;font-family:var(--f-display);font-weight:800;font-size:18px}
 .intl-pick+div{margin-top:8px}
 @media (max-width:760px){.tp-hero{grid-template-columns:1fr}}

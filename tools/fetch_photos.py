@@ -189,6 +189,12 @@ def pick_flickr(man, tid, team_name, photo_id):
 def pick(man, choices):
     """--pick id="File:Title" ...: use exactly these Commons files."""
     names = {t["id"]: t["name"] for t in teams()}
+    # men's teams (tools/men_photo_candidates.py) take their names from the player database
+    for slug in ("eng.1", "esp.1", "uefa.champions", "fifa.world"):
+        p = os.path.join(ROOT, "data", slug, "players.json")
+        if os.path.exists(p):
+            for tid, t in json.load(open(p))["teams"].items():
+                names.setdefault(tid, t["name"])
     for c in choices:
         tid, title = c.split("=", 1)
         if title.startswith("ov:"):

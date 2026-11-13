@@ -28,4 +28,4 @@ Live scores, statistics, probabilities and player stats for the WSL, Liga F, NWS
 - [[Changelog]]: every change, by commit
 - [[Log/2026-11-06]]: the build session, request by request
 - [[Log/2026-11-09]]: news filter for men's stories
-- [[Log/2026-11-11]]: one page per team, men's national team fixtures and players
+- [[Log/2026-11-11]]: one page per team, men's teams, players and photos, smaller data (2026-11-10 to 13)

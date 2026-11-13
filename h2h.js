@@ -47,7 +47,8 @@
     [[teamName + " wins", w], ["Draws", d], [oppName + " wins", l]].forEach(function (x) { var t = el("div", "pl-tile"); t.appendChild(el("b", "num", String(x[1]))); t.appendChild(el("span", null, x[0])); sum.appendChild(t); });
     box.appendChild(sum);
     var bar = el("div", "pbar lg h2h-bar");
-    [["ph", w], ["pd", d], ["pa", l]].forEach(function (x) { var i = el("i", x[0]); i.style.flex = x[1] + " 0 0"; bar.appendChild(i); });
+    // a count of 0 gets no segment (the bar's 2px minimum is for small probabilities, not for none)
+    [["ph", w], ["pd", d], ["pa", l]].forEach(function (x) { if (!x[1]) return; var i = el("i", x[0]); i.style.flex = x[1] + " 0 0"; bar.appendChild(i); });
     box.appendChild(bar);
     box.appendChild(el("p", "note", meetings.length + " meetings · goals " + gf + "–" + ga));
     var t = el("table", "h2h-table"), tb = el("tbody");
