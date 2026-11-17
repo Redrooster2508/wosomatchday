@@ -172,17 +172,19 @@
     if (m.state === "pre") { box.textContent = ""; box.appendChild(el("p", "note", "Heatmaps and the shot map appear once the match kicks off.")); mstate.key = null; return; }
     var key = ctx.slug + ":" + m.id;
     if (mstate.key !== key) { mstate = { key: key, plays: null, view: "home", loading: false, at: 0 }; }
+    // draw with the newest call's names: the line-ups come with the match summary, often after the play-by-play was asked for
+    mstate.ctx = ctx;
     var stale = ctx.live && Date.now() - (mstate.at || 0) > 55000;
     if ((!mstate.plays || stale) && !mstate.loading) {
       mstate.loading = true;
       if (!mstate.plays) { box.textContent = ""; box.appendChild(el("p", "note", "Loading play-by-play…")); }
       loadPlays(ctx.slug, m.id).then(function (pl) { if (mstate.key !== key) return; mstate.plays = pl; mstate.at = Date.now(); mstate.loading = false; draw(); })
         .catch(function () { mstate.loading = false; if (mstate.key === key && !mstate.plays) { box.textContent = ""; box.appendChild(el("p", "note", "No play-by-play in the feed for this match.")); } });
-      if (!mstate.plays) return;
     }
+    if (!mstate.plays) return;   // still loading: drawn when it arrives
     draw();
     function draw() {
-      var plays = mstate.plays || [];
+      var ctx = mstate.ctx, m = ctx.match, plays = mstate.plays || [];
       box.textContent = "";
       if (!plays.length) { box.appendChild(el("p", "note", "ESPN's play-by-play for this match has no pitch positions, so there's no heatmap or shot map." + (ctx.slug === "esp.w.1" ? " Liga F matches only list goals, cards and substitutions." : ""))); return; }
       var grid = el("div", "hm-grid"); box.appendChild(grid);

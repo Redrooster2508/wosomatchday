@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-17 · Player names in the match heatmap (build 27)
+- Fix: the match centre's touch map could list players as "Player 158678" instead of their names (Caitlin Foord, London City v Arsenal). The names come with the match summary, which often arrives after the play-by-play was asked for, and the map kept the first, empty list of names. It now uses the newest one when the play-by-play arrives
+- While the play-by-play loads, the panel says so instead of briefly saying the match has no pitch positions
+
 ## 2026-11-13 · New font (build 26)
 - One typeface, Archivo, across the site: a condensed cut for headings and tabs, the regular cut for text, labels, times and odds (numbers line up in columns). It replaces three fonts: Big Shoulders Display for headings, Archivo for text and IBM Plex Mono for labels and numbers
 - Small capital labels get wider word gaps, so "Champions League" doesn't read as one word
