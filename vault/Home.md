@@ -19,6 +19,7 @@ Live scores, statistics, probabilities and player stats for the WSL, Liga F, NWS
 - [[National teams]]
 - [[Team pages]]
 - [[Photos and licensing]]
+- [[Where to watch]]: broadcasters by region in the match centre
 - [[Testing]]
 - [[Deployment]]
 - [[Decisions]]: choices made and why

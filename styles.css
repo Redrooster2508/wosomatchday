@@ -468,3 +468,14 @@ tr.k0>td:first-child{box-shadow:inset 3px 0 var(--k0)} tr.k1>td:first-child{box-
 .intl-pick+div{margin-top:8px}
 @media (max-width:760px){.tp-hero{grid-template-columns:1fr}}
 a.tname{display:block;color:inherit;text-decoration:none}a.tname:hover{text-decoration:underline}
+/* where to watch: the competition's broadcasters in the chosen region, and ESPN's listing for the match */
+.watch{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.watch li{display:grid;gap:1px;border:1px solid var(--line);border-radius:6px;padding:7px 12px;background:var(--sunk);min-width:0}
+.watch b{font-weight:600;font-size:14px}
+.watch span{font-size:12px;color:var(--muted)}
+.watch-game{display:grid;gap:6px;margin-bottom:12px}
+.watch-sub{display:block;margin-bottom:6px}
+.watch-note{margin-top:10px}
+#watchPanel .sec-head{margin-bottom:10px;align-items:center}
+#watchPanel .intl-pick{flex-basis:auto}
+.watch-note a{color:inherit}

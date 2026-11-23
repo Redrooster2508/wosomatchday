@@ -13,6 +13,7 @@ tags: [todo]
 - [ ] Play-by-play goal counts can differ from the match sheet (Russo, Champions League: 4 vs 3). See [[Heatmaps]].
 - [ ] Career history depends on Wikidata: some players have no item or incomplete spells, and appearance counts lag. Edits on Wikidata show up on the site straight away.
 - [ ] NWSL whole-year scoreboard is about 2.5 MB; the builder and bracket avoid it where they can.
+- [ ] **Where to watch** is a hand-made list (`broadcasters.json`, checked 2026-11-19): recheck it each summer, and when deals change mid-season. No WSL partner is confirmed for Spain, France or Hong Kong, and Liga F has none outside Spain. See [[Where to watch]].
 - [ ] The ESPN feed is unofficial; if it changes shape, the site and builder need updating. See [[Data sources (ESPN)]].
 
 ## Done (2026-11-06)

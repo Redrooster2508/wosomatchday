@@ -1,0 +1,284 @@
+{
+ "updated": "2026-11-19",
+ "note": "Who holds each competition's live rights, by region. Researched by hand from the sources listed per competition; check them when a season changes.",
+ "regions": {
+  "GB": "United Kingdom",
+  "IE": "Ireland",
+  "US": "United States",
+  "CA": "Canada",
+  "ES": "Spain",
+  "FR": "France",
+  "DE": "Germany",
+  "AU": "Australia",
+  "CN": "China",
+  "HK": "Hong Kong"
+ },
+ "competitions": {
+  "eng.w.1": {
+   "name": "Women's Super League",
+   "season": "2026/27",
+   "official": "https://www.wslfootball.com/",
+   "sources": [
+    "https://www.fourfourtwo.com/competition/watch-wsl-2026-27-free",
+    "https://www.insideworldfootball.com/2026/09/02/sportdigital-extends-wsl-rights-as-more-german-players-find-english-homes/"
+   ],
+   "regions": {
+    "GB": [
+     [
+      "Sky Sports",
+      "Most matches"
+     ],
+     [
+      "BBC",
+      "19 matches, free on BBC iPlayer"
+     ]
+    ],
+    "IE": [
+     [
+      "Sky Sports"
+     ]
+    ],
+    "US": [
+     [
+      "Paramount+",
+      "Every match"
+     ],
+     [
+      "CBS Sports Golazo Network",
+      "Some matches, free"
+     ]
+    ],
+    "CA": [
+     [
+      "Sportsnet"
+     ]
+    ],
+    "DE": [
+     [
+      "Sportdigital",
+      "Every match"
+     ]
+    ],
+    "AU": [
+     [
+      "Stan Sport",
+      "Every match"
+     ]
+    ],
+    "CN": [
+     [
+      "Migu"
+     ],
+     [
+      "Huya"
+     ],
+     [
+      "iQIYI"
+     ]
+    ]
+   },
+   "elsewhere": [
+    [
+     "WSL YouTube channel",
+     "Some matches, free"
+    ]
+   ]
+  },
+  "esp.w.1": {
+   "name": "Liga F",
+   "season": "2026/27",
+   "official": "https://ligaf.es/",
+   "sources": [
+    "https://www.sportcal.com/news/dazn-rtve-retain-domestic-liga-f-rights-through-2028-29/",
+    "https://www.advanced-television.com/2026/08/20/spain-dazn-tve-tv3-secure-liga-f-rights/"
+   ],
+   "regions": {
+    "ES": [
+     [
+      "DAZN",
+      "Every match"
+     ],
+     [
+      "Teledeporte and RTVE Play",
+      "One match a round, free"
+     ],
+     [
+      "TV3 and 3Cat",
+      "Free in Catalonia"
+     ]
+    ]
+   },
+   "elsewhere": [],
+   "none": "Liga F hasn't announced broadcasters outside Spain for 2026/27; it is selling those rights country by country."
+  },
+  "usa.nwsl": {
+   "name": "NWSL",
+   "season": "2026",
+   "official": "https://www.nwslsoccer.com/news/how-to-watch-the-nwsl-in-2026-select-matches-by-territory",
+   "sources": [
+    "https://www.nwslsoccer.com/news/how-to-watch-the-nwsl-in-2026-select-matches-by-territory",
+    "https://www.nwslsoccer.com/news/the-2026-nwsl-schedule-is-here"
+   ],
+   "regions": {
+    "US": [
+     [
+      "CBS and Paramount+"
+     ],
+     [
+      "ESPN and ABC"
+     ],
+     [
+      "Prime Video"
+     ],
+     [
+      "NWSL+",
+      "Free: matches no partner shows"
+     ]
+    ],
+    "GB": [
+     [
+      "TNT Sports",
+      "Two matches a week and the playoffs"
+     ]
+    ],
+    "IE": [
+     [
+      "TNT Sports",
+      "Two matches a week and the playoffs"
+     ]
+    ],
+    "CA": [
+     [
+      "TSN"
+     ],
+     [
+      "OneSoccer"
+     ]
+    ],
+    "ES": [
+     [
+      "Disney+",
+      "Some matches"
+     ]
+    ],
+    "FR": [
+     [
+      "Disney+",
+      "Some matches"
+     ]
+    ],
+    "DE": [
+     [
+      "Sportdigital",
+      "Some matches"
+     ],
+     [
+      "Disney+",
+      "Some matches"
+     ]
+    ],
+    "AU": [
+     [
+      "Stan Sport",
+      "Four matches a week"
+     ]
+    ]
+   },
+   "elsewhere": [
+    [
+     "NWSL+",
+     "Free app: matches no local partner shows"
+    ]
+   ]
+  },
+  "uefa.wchampions": {
+   "name": "Women's Champions League",
+   "season": "2026/27",
+   "official": "https://www.uefa.com/womenschampionsleague/news/02a9-21a6a6e08706-8a5188c3c0b9-1000--where-to-watch-the-uefa-womens-champions-league-tv-broadc/",
+   "sources": [
+    "https://www.uefa.com/womenschampionsleague/news/02a9-21a6a6e08706-8a5188c3c0b9-1000--where-to-watch-the-uefa-womens-champions-league-tv-broadc/"
+   ],
+   "regions": {
+    "GB": [
+     [
+      "Disney+"
+     ],
+     [
+      "BBC"
+     ]
+    ],
+    "IE": [
+     [
+      "Disney+"
+     ],
+     [
+      "RTÉ"
+     ]
+    ],
+    "US": [
+     [
+      "Paramount+"
+     ],
+     [
+      "ESPN Deportes",
+      "Spanish"
+     ]
+    ],
+    "CA": [
+     [
+      "OneSoccer"
+     ]
+    ],
+    "ES": [
+     [
+      "Disney+"
+     ],
+     [
+      "RTVE"
+     ],
+     [
+      "3Cat"
+     ]
+    ],
+    "FR": [
+     [
+      "Disney+"
+     ],
+     [
+      "L'Équipe"
+     ]
+    ],
+    "DE": [
+     [
+      "Disney+"
+     ],
+     [
+      "ZDF"
+     ],
+     [
+      "ARD"
+     ]
+    ],
+    "AU": [
+     [
+      "ESPN"
+     ],
+     [
+      "Disney+"
+     ]
+    ],
+    "CN": [
+     [
+      "Shinai Sport (iQIYI)"
+     ]
+    ],
+    "HK": [
+     [
+      "beIN Sports"
+     ]
+    ]
+   },
+   "elsewhere": []
+  }
+ }
+}

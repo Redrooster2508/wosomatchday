@@ -101,7 +101,7 @@
       venue: (c.venue && c.venue.fullName) || (ev.venue && ev.venue.fullName) || "", neutral: !!c.neutralSite,
       home: home, away: away, odds: parseOdds(c.odds && c.odds[0]), details: parseDetails(c.details, home.id),
       note: c.notes && c.notes[0] && c.notes[0].headline || "",
-      round: ev.season && ev.season.slug || ""
+      round: ev.season && ev.season.slug || "", tv: Watch.fromEvent(c)
     };
     hc && (home.form = hc.form || ""); ac && (away.form = ac.form || "");
     return m;
@@ -310,6 +310,7 @@
     var roster = {};
     ((state.summaryFor === m.id && state.summary && state.summary.raw.rosters) || []).forEach(function (r) { (r.roster || []).forEach(function (p) { if (p.athlete) roster[String(p.athlete.id)] = p.athlete.displayName; }); });
     Heat.matchPanel($("pitchHeat"), { slug: LEAGUES[state.league].slug, match: m, roster: roster, live: m.state === "in", tip: function (e, t) { if (e) showTip(e, t); else hideTip(); } });
+    Watch.render($("watch"), $("watchRegion"), { slug: LEAGUES[state.league].slug, match: m, key: "wmh-region" });
     renderTimeline(m);
     renderH2H(m);
   }

@@ -7,6 +7,11 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-19 · Where to watch (build 28)
+- The match centre has a "Where to watch" panel for the selected match: the competition's broadcasters in your region, guessed from your time zone and changeable (United Kingdom, Ireland, United States, Canada, Spain, France, Germany, Australia, China, Hong Kong or elsewhere)
+- In the United States it also shows the channels ESPN lists for that match (for example CBS and Paramount+ for the NWSL final)
+- Broadcasters are for the 2026/27 season, from the official league and UEFA pages where they exist, with the date they were checked; see [[Where to watch]]
+
 ## 2026-11-17 · Player names in the match heatmap (build 27)
 - Fix: the match centre's touch map could list players as "Player 158678" instead of their names (Caitlin Foord, London City v Arsenal). The names come with the match summary, which often arrives after the play-by-play was asked for, and the map kept the first, empty list of names. It now uses the newest one when the play-by-play arrives
 - While the play-by-play loads, the panel says so instead of briefly saying the match has no pitch positions
