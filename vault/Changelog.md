@@ -7,6 +7,10 @@ Newest first. Commit ids link the change to the repository history. The narrativ
 
 ## Unreleased (local, not pushed)
 
+## 2026-11-23 · Women's football only (build 29)
+- Men's football is the men's site's (`Redrooster2508/footie`), so this repository no longer holds any: the men's national team and club competitions are out of the player database (data 22 → 6 MB), the 32 men's team photos and the men's photo search tool are gone, and player and team pages no longer have men's competitions
+- A men's team reached from an ESPN link still opens, with results, fixtures, head to head and its crest, but no squad
+
 ## 2026-11-19 · Where to watch (build 28)
 - The match centre has a "Where to watch" panel for the selected match: the competition's broadcasters in your region, guessed from your time zone and changeable (United Kingdom, Ireland, United States, Canada, Spain, France, Germany, Australia, China, Hong Kong or elsewhere)
 - In the United States it also shows the channels ESPN lists for that match (for example CBS and Paramount+ for the NWSL final)
